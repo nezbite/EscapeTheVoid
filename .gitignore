@@ -31,3 +31,4 @@ Desktop.ini
 
 ## Virtual Machine Files
 project/build/
+project/.gradle/
