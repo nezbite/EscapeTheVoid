@@ -28,3 +28,6 @@ Desktop.ini
 *.zip
 *.tar.gz
 *.rar
+
+## Virtual Machine Files
+project/build/
