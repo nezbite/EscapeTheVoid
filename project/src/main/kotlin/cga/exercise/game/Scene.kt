@@ -4,6 +4,7 @@ import cga.exercise.components.camera.TronCamera
 import cga.exercise.components.geometry.*
 import cga.exercise.components.light.PointLight
 import cga.exercise.components.light.SpotLight
+import cga.exercise.components.map.MapManager
 import cga.exercise.components.shader.ShaderProgram
 import cga.exercise.components.texture.Texture2D
 import cga.framework.GLError
@@ -56,6 +57,8 @@ class Scene(private val window: GameWindow) {
     private lateinit var frontRightWheelTurning: Transformable
     private lateinit var frontLeftWheel: Transformable
     private lateinit var frontRightWheel: Transformable
+
+    private var mapManager = MapManager()
 
 
     //scene setup
@@ -154,7 +157,7 @@ class Scene(private val window: GameWindow) {
 
 
 
-        renderables.add(groundRenderable)
+        //renderables.add(groundRenderable)
 
         val carModel = ModelLoader.loadModel("assets/Car/Car.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val backWheelsModel = ModelLoader.loadModel("assets/Car/BackWheels.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
@@ -181,7 +184,36 @@ class Scene(private val window: GameWindow) {
             frontRightWheelTurning = frWheelObject
             frontLeftWheel = frontLeftWheelModel
             frontRightWheel = frontRightWheelModel
+
+            player.rotate(0.0f, Math.toRadians(180.0).toFloat(), 0.0f)
         }
+
+
+        val ROAD_SEGMENTS = 10
+
+        val roadModel1 = ModelLoader.loadModel("assets/Environment/Road1.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val roadModel2 = ModelLoader.loadModel("assets/Environment/Road2.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val roadModel3 = ModelLoader.loadModel("assets/Environment/Road3.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        mapManager.roadModels.add(roadModel1!!)
+        mapManager.roadModels.add(roadModel2!!)
+        mapManager.roadModels.add(roadModel3!!)
+
+        mapManager.init()
+
+//        if (roadModel1 != null && roadModel2 != null && roadModel3 != null) {
+//            for (i in 0 until ROAD_SEGMENTS) {
+//                var roadSegment: Renderable
+//                val model = (Math.random() * 3).toInt()
+//                roadSegment = when (model) {
+//                    1 -> roadModel1.copy()
+//                    2 -> roadModel2.copy()
+//                    else -> roadModel3.copy()
+//                }
+//                roadSegment.scale(Vector3f(1.5f))
+//                roadSegment.translate(Vector3f(0.0f, 0.0f, -i*3f))
+//                environment.add(roadSegment)
+//            }
+//        }
 
 
 
@@ -230,6 +262,11 @@ class Scene(private val window: GameWindow) {
         for (renderable in environment) {
             renderable.render(staticShader)
         }
+
+        for (segment in mapManager.segments) {
+            segment.renderable.render(staticShader)
+        }
+
 
 //        pointLight.bind(staticShader)
 //        spotLight.bind(staticShader, tronCamera.getCalculateViewMatrix())
@@ -308,7 +345,7 @@ class Scene(private val window: GameWindow) {
         }
 
         val fwrot = targetRotation*.5f
-        
+
         // Update front wheel angle
         frontLeftWheel.rotateAroundPoint(-velocity*dt*5, 0.0f, 0.0f, Vector3f(0.0f, 0.35f, -1.32f))
         frontLeftWheelTurning.setRotationAroundPoint(0.0f, lerp(fwrot, frontLeftWheelTurning.getRotation().y, dt*5), 0.0f, Vector3f(-0.8f, 0.35f, -1.32f))
@@ -319,6 +356,11 @@ class Scene(private val window: GameWindow) {
         // Update wheel spin
         backWheels.rotateAroundPoint(-velocity*dt*5, 0.0f, 0.0f, Vector3f(0.0f, 0.35f, 1.32f))
 
+
+
+        // Map Manager
+        mapManager.currentSegment = (player.getWorldPosition().z/3).toInt()
+        mapManager.update()
 
     }
 

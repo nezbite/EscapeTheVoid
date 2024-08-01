@@ -16,4 +16,9 @@ class Renderable(val meshes: MutableList<Mesh>, var colorOverlay: Vector3f = Vec
             mesh.material = material
         }
     }
+
+    fun copy(): Renderable {
+        val copy = Renderable(meshes, colorOverlay)
+        return copy
+    }
 }
