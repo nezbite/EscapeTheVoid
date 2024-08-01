@@ -1,2 +1,2 @@
 # Projekt
-In diesem Ordner sollen alle Dateien untergebracht werden, die zur Ausführung ihres Projektes notwendig sind (Source Code, Modelle, Assets, etc.)
+In diesem Ordner sind alle Dateien untergebracht, die zur Ausführung unseres Projektes notwendig sind (Source Code, Modelle, Assets, etc.)
