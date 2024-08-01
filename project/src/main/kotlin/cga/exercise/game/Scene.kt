@@ -1,6 +1,7 @@
 package cga.exercise.game
 
 import cga.exercise.components.camera.TronCamera
+import cga.exercise.components.collision.BoxCollider
 import cga.exercise.components.geometry.*
 import cga.exercise.components.map.MapManager
 import cga.exercise.components.shader.ShaderProgram
@@ -38,6 +39,16 @@ class Scene(private val window: GameWindow) {
 
     private var mapManager = MapManager()
 
+    private var carCollider = BoxCollider(1.35f, 3.6f)
+
+
+    val HIGHWAY_DIVIDER = 5.8f
+
+
+    // Debug
+    private var renderCollisions = false
+    private var debugColliders = mutableListOf<Renderable>()
+
 
     //scene setup
     init {
@@ -56,6 +67,8 @@ class Scene(private val window: GameWindow) {
         val backWheelsModel = ModelLoader.loadModel("assets/Car/BackWheels.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val frontLeftWheelModel = ModelLoader.loadModel("assets/Car/FLWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val frontRightWheelModel = ModelLoader.loadModel("assets/Car/FRWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+
+        val cubeModel = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
         if (carModel != null && backWheelsModel != null && frontLeftWheelModel != null && frontRightWheelModel != null) {
             carModel.scale(Vector3f(0.8f))
             backWheelsModel.parent = carModel
@@ -79,7 +92,30 @@ class Scene(private val window: GameWindow) {
             frontRightWheel = frontRightWheelModel
 
             player.rotate(0.0f, Math.toRadians(180.0).toFloat(), 0.0f)
+
+            // Debug
+            cubeModel!!.scale(Vector3f(.1f, 1f, .1f))
+            var cubeModelA = cubeModel.copy()
+            var cubeModelB = cubeModel.copy()
+            var cubeModelC = cubeModel.copy()
+            var cubeModelD = cubeModel.copy()
+            cubeModelA.scale(Vector3f(.1f, 1f, .1f))
+            cubeModelB.scale(Vector3f(.1f, 1f, .1f))
+            cubeModelC.scale(Vector3f(.1f, 1f, .1f))
+            cubeModelD.scale(Vector3f(.1f, 1f, .1f))
+
+            carCollider.renderables.addAll(mutableListOf(cubeModelA, cubeModelB, cubeModelC, cubeModelD))
+
+            //debugColliders.add(cubeModel)
+
+            val cubeModel2 = cubeModel.copy()
+            cubeModel2.scale(Vector3f(.1f, 1f, 100f))
+            cubeModel2.setPosition(Vector3f(HIGHWAY_DIVIDER, 0f, 0f))
+
+            debugColliders.add(cubeModel2)
+
         }
+
 
 
         // Setting up Map Manager
@@ -114,6 +150,15 @@ class Scene(private val window: GameWindow) {
         for (segment in mapManager.segments) {
             segment.renderable.render(staticShader)
         }
+
+        if (renderCollisions) {
+            for (collider in debugColliders) {
+                collider.render(staticShader)
+            }
+            for (collider in carCollider.renderables) {
+                collider.render(staticShader)
+            }
+        }
     }
 
     var velocity = 0.0f
@@ -138,6 +183,9 @@ class Scene(private val window: GameWindow) {
         player.rotate(0.0f, roll, 0.0f)
         player.translate(Vector3f(0.0f, 0.0f, -velocity*dt))
 
+        // Collisions
+        updateCollisions()
+
         // Effects
         tronCamera.fov = 80f + 20f * Math.min(velocity/maxSpeed, 1f)
 
@@ -153,7 +201,11 @@ class Scene(private val window: GameWindow) {
         mapManager.update()
     }
 
-    fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {}
+    fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
+        if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+            renderCollisions = !renderCollisions
+        }
+    }
 
     fun onMouseMove(xpos: Double, ypos: Double) {
         // Calculate the difference between the old and new mouse positions
@@ -182,11 +234,21 @@ class Scene(private val window: GameWindow) {
 
     private fun steeringInput() {
         targetRotation = if (window.getKeyState(GLFW_KEY_A)) {
-            rotateMul * (1-velocity/maxSpeed)
+            rotateMul * (1 - velocity / maxSpeed)
         } else if (window.getKeyState(GLFW_KEY_D)) {
-            -rotateMul * (1-velocity/maxSpeed)
+            -rotateMul * (1 - velocity / maxSpeed)
         } else {
             targetRotation * 0.95f
+        }
+    }
+
+    private fun updateCollisions() {
+        // Calculate Player Collider
+        carCollider.updateBounds(player.getWorldPosition(), player.getRotation())
+
+        // Highway divider collision
+        if (carCollider.checkZAxisCollision(HIGHWAY_DIVIDER)) {
+            velocity = -velocity
         }
     }
 
