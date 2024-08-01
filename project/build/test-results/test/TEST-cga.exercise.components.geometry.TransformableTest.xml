@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cga.exercise.components.geometry.TransformableTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2024-05-31T11:30:04" hostname="p058170.nat-gm.FH-Koeln.DE" time="0.046">
+  <properties/>
+  <testcase name="testGetPosition()" classname="cga.exercise.components.geometry.TransformableTest" time="0.023"/>
+  <testcase name="testGetModelMatrix()" classname="cga.exercise.components.geometry.TransformableTest" time="0.001"/>
+  <testcase name="testScale()" classname="cga.exercise.components.geometry.TransformableTest" time="0.001"/>
+  <testcase name="testGetWorldModelMatrix()" classname="cga.exercise.components.geometry.TransformableTest" time="0.014"/>
+  <testcase name="testGetAxes()" classname="cga.exercise.components.geometry.TransformableTest" time="0.0"/>
+  <testcase name="testPreTranslate()" classname="cga.exercise.components.geometry.TransformableTest" time="0.0"/>
+  <testcase name="testGetWorldPosition()" classname="cga.exercise.components.geometry.TransformableTest" time="0.0"/>
+  <testcase name="testRotateAroundPoint()" classname="cga.exercise.components.geometry.TransformableTest" time="0.001"/>
+  <testcase name="testRotate()" classname="cga.exercise.components.geometry.TransformableTest" time="0.0"/>
+  <testcase name="testTranslate()" classname="cga.exercise.components.geometry.TransformableTest" time="0.0"/>
+  <testcase name="testGetWorldAxes()" classname="cga.exercise.components.geometry.TransformableTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
