@@ -3,6 +3,7 @@ package cga.exercise.game
 import cga.exercise.components.camera.TronCamera
 import cga.exercise.components.collision.BoxCollider
 import cga.exercise.components.geometry.*
+import cga.exercise.components.light.PointLight
 import cga.exercise.components.map.MapManager
 import cga.exercise.components.shader.ShaderProgram
 import cga.framework.GLError
@@ -27,6 +28,7 @@ class Scene(private val window: GameWindow) {
     private var oldYpos: Double = 0.0
 
     private var renderables = mutableListOf<Renderable>()
+    private var pointLights = mutableListOf<PointLight>()
 
     private var tronCamera : TronCamera = TronCamera()
 
@@ -121,12 +123,16 @@ class Scene(private val window: GameWindow) {
 
         // Setting up Map Manager
 
-        val roadModel1 = ModelLoader.loadModel("assets/Environment/Road1.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
-        val roadModel2 = ModelLoader.loadModel("assets/Environment/Road2.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
-        val roadModel3 = ModelLoader.loadModel("assets/Environment/Road3.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
-        mapManager.roadModels.add(roadModel1!!)
-        mapManager.roadModels.add(roadModel2!!)
-        mapManager.roadModels.add(roadModel3!!)
+        val map_tunnelEntry = ModelLoader.loadModel("assets/Environment/MAP_TunnelEntry.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val map_tunnel = ModelLoader.loadModel("assets/Environment/MAP_Tunnel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val map_road1 = ModelLoader.loadModel("assets/Environment/MAP_Road1.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val map_road2 = ModelLoader.loadModel("assets/Environment/MAP_Road2.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val map_road3 = ModelLoader.loadModel("assets/Environment/MAP_Road3.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        mapManager.roadModels.add(map_tunnelEntry!!)
+        mapManager.roadModels.add(map_tunnel!!)
+        mapManager.roadModels.add(map_road1!!)
+        mapManager.roadModels.add(map_road2!!)
+        mapManager.roadModels.add(map_road3!!)
 
         mapManager.init()
 
@@ -145,6 +151,10 @@ class Scene(private val window: GameWindow) {
         // Render Renderables
         for (renderable in renderables) {
             renderable.render(staticShader)
+        }
+
+        for (light in pointLights) {
+            light.bind(staticShader)
         }
 
         // Render Map Segments
@@ -199,7 +209,7 @@ class Scene(private val window: GameWindow) {
 
 
         // Map Manager
-        mapManager.currentSegment = (player.getWorldPosition().z/3).toInt()
+        mapManager.currentSegment = (player.getWorldPosition().z/mapManager.SEGMENT_SIZE).toInt()
         mapManager.update()
     }
 
