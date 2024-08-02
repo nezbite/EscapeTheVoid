@@ -11,6 +11,7 @@ import cga.framework.ModelLoader
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL20.*
+import kotlin.math.abs
 
 class Scene(private val window: GameWindow) {
     private val staticShader: ShaderProgram = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
@@ -190,7 +191,8 @@ class Scene(private val window: GameWindow) {
         tronCamera.fov = 80f + 20f * Math.min(velocity/maxSpeed, 1f)
 
         // Camera Orbit
-        updateCameraOrbit()
+//        updateCameraOrbit()
+        updateCamera(dt)
 
         // Car Components
         updateWheelSpin(dt)
@@ -234,9 +236,9 @@ class Scene(private val window: GameWindow) {
 
     private fun steeringInput() {
         targetRotation = if (window.getKeyState(GLFW_KEY_A)) {
-            rotateMul * (1 - velocity / maxSpeed)
+            rotateMul * (1 - velocity*.5f / maxSpeed)
         } else if (window.getKeyState(GLFW_KEY_D)) {
-            -rotateMul * (1 - velocity / maxSpeed)
+            -rotateMul * (1 - velocity*.5f / maxSpeed)
         } else {
             targetRotation * 0.95f
         }
@@ -248,8 +250,31 @@ class Scene(private val window: GameWindow) {
 
         // Highway divider collision
         if (carCollider.checkZAxisCollision(HIGHWAY_DIVIDER)) {
-            velocity = -velocity
+            val minDistance = HIGHWAY_DIVIDER-.75f-abs(player.getWorldRotation().y)
+            if (player.getWorldPosition().x > minDistance) {
+                player.setPosition(Vector3f(minDistance, player.getWorldPosition().y, player.getWorldPosition().z))
+            }
+            if (player.getWorldRotation().y > 0 || targetRotation < 0) {
+                targetRotation = -1f
+                player.translate(Vector3f(0.1f, 0.0f, 0.0f))
+                return
+            }
+            if (player.getWorldRotation().y < .25f && player.getWorldRotation().y > -.25f) {
+                velocity = velocity*.9f
+                targetRotation = -3f
+            } else {
+                velocity = -velocity * .8f
+            }
         }
+
+    }
+
+    var cameraAngle = 0.0f
+
+    private fun updateCamera(dt: Float) {
+        cameraAngle = lerp(targetRotation*.1f, cameraAngle, dt)
+        tronCamera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
+        tronCamera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
     }
 
     private fun updateCameraOrbit() {

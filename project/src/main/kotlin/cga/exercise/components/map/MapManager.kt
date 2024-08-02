@@ -8,7 +8,8 @@ import kotlin.random.Random
  * Class for managing the infinitely generated map
  */
 class MapManager {
-    var segments: Array<MapSegment> = Array(40) { MapSegment(Renderable(mutableListOf())) }
+    val MAP_SIZE = 100
+    var segments: Array<MapSegment> = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
     var segmentIds = mutableListOf<Int>()
     var random = Random(1)
 
@@ -28,8 +29,8 @@ class MapManager {
     fun update() {
         if (mapSegment != currentSegment) {
             mapSegment = currentSegment
-            if (segmentIds.size < currentSegment + 40) {
-                for (i in segmentIds.size .. currentSegment + 39) {
+            if (segmentIds.size < currentSegment + MAP_SIZE) {
+                for (i in segmentIds.size .. currentSegment + MAP_SIZE-1) {
                     segmentIds.add(random.nextInt(roadModels.size))
                 }
             }

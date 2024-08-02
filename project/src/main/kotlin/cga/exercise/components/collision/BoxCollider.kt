@@ -19,7 +19,6 @@ class BoxCollider(var width: Float, var depth: Float) {
         val d = Vector3f(halfWidth, 0f, -halfDepth)
 
         val yRot = -rotation.y
-        println(rotation.y.toDouble().round())
 
 //        a.rotateX(rotation.x)
         a.rotateY(yRot)
