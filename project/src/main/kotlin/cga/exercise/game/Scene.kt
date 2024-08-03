@@ -3,6 +3,7 @@ package cga.exercise.game
 import cga.exercise.components.camera.TronCamera
 import cga.exercise.components.collision.BoxCollider
 import cga.exercise.components.geometry.*
+import cga.exercise.components.light.PointLight
 import cga.exercise.components.map.MapManager
 import cga.exercise.components.shader.ShaderProgram
 import cga.framework.GLError
@@ -12,6 +13,7 @@ import cga.framework.OBJLoader
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL20.*
+import kotlin.math.abs
 import kotlin.system.measureTimeMillis
 
 class Scene(private val window: GameWindow) {
@@ -32,6 +34,7 @@ class Scene(private val window: GameWindow) {
     private var oldYpos: Double = 0.0
 
     private var renderables = mutableListOf<Renderable>()
+    private var pointLights = mutableListOf<PointLight>()
     private var carRenderables = mutableListOf<Renderable>()
 
     private var tronCamera: TronCamera = TronCamera()
@@ -133,15 +136,16 @@ class Scene(private val window: GameWindow) {
 
         // Setting up Map Manager
 
-        val roadModel1 =
-            ModelLoader.loadModel("project/assets/Environment/Road1.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
-        val roadModel2 =
-            ModelLoader.loadModel("project/assets/Environment/Road2.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
-        val roadModel3 =
-            ModelLoader.loadModel("project/assets/Environment/Road3.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
-        mapManager.roadModels.add(roadModel1!!)
-        mapManager.roadModels.add(roadModel2!!)
-        mapManager.roadModels.add(roadModel3!!)
+        val map_tunnelEntry = ModelLoader.loadModel("assets/Environment/MAP_TunnelEntry.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val map_tunnel = ModelLoader.loadModel("assets/Environment/MAP_Tunnel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val map_road1 = ModelLoader.loadModel("assets/Environment/MAP_Road1.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val map_road2 = ModelLoader.loadModel("assets/Environment/MAP_Road2.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val map_road3 = ModelLoader.loadModel("assets/Environment/MAP_Road3.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        mapManager.roadModels.add(map_tunnelEntry!!)
+        mapManager.roadModels.add(map_tunnel!!)
+        mapManager.roadModels.add(map_road1!!)
+        mapManager.roadModels.add(map_road2!!)
+        mapManager.roadModels.add(map_road3!!)
 
         mapManager.init()
 
@@ -163,6 +167,9 @@ class Scene(private val window: GameWindow) {
             renderable.render(staticShader)
         }
 
+        for (light in pointLights) {
+            light.bind(staticShader)
+        }
 
         // Render Map Segments
         for (segment in mapManager.segments) {
@@ -223,14 +230,15 @@ class Scene(private val window: GameWindow) {
         tronCamera.fov = 80f + 20f * Math.min(velocity / maxSpeed, 1f)
 
         // Camera Orbit
-        updateCameraOrbit()
+//        updateCameraOrbit()
+        updateCamera(dt)
 
         // Car Components
         updateWheelSpin(dt)
 
 
         // Map Manager
-        mapManager.currentSegment = (player.getWorldPosition().z / 3).toInt()
+        mapManager.currentSegment = (player.getWorldPosition().z/mapManager.SEGMENT_SIZE).toInt()
         mapManager.update()
 
     }
@@ -275,9 +283,9 @@ class Scene(private val window: GameWindow) {
 
     private fun steeringInput() {
         targetRotation = if (window.getKeyState(GLFW_KEY_A)) {
-            rotateMul * (1 - velocity / maxSpeed)
+            rotateMul * (1 - velocity*.5f / maxSpeed)
         } else if (window.getKeyState(GLFW_KEY_D)) {
-            -rotateMul * (1 - velocity / maxSpeed)
+            -rotateMul * (1 - velocity*.5f / maxSpeed)
         } else {
             targetRotation * 0.95f
         }
@@ -289,8 +297,31 @@ class Scene(private val window: GameWindow) {
 
         // Highway divider collision
         if (carCollider.checkZAxisCollision(HIGHWAY_DIVIDER)) {
-            velocity = -velocity
+            val minDistance = HIGHWAY_DIVIDER-.75f-abs(player.getWorldRotation().y)
+            if (player.getWorldPosition().x > minDistance) {
+                player.setPosition(Vector3f(minDistance, player.getWorldPosition().y, player.getWorldPosition().z))
+            }
+            if (player.getWorldRotation().y > 0 || targetRotation < 0) {
+                targetRotation = -1f
+                player.translate(Vector3f(0.1f, 0.0f, 0.0f))
+                return
+            }
+            if (player.getWorldRotation().y < .25f && player.getWorldRotation().y > -.25f) {
+                velocity = velocity*.9f
+                targetRotation = -3f
+            } else {
+                velocity = -velocity * .8f
+            }
         }
+
+    }
+
+    var cameraAngle = 0.0f
+
+    private fun updateCamera(dt: Float) {
+        cameraAngle = lerp(targetRotation*.1f, cameraAngle, dt)
+        tronCamera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
+        tronCamera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
     }
 
     private fun updateCameraOrbit() {
