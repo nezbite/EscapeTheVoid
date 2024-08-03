@@ -8,7 +8,7 @@ class Material(var diff: Texture2D,
                var emit: Texture2D,
                var specular: Texture2D,
                var shininess: Float = 50.0f,
-               var tcMultiplier : Vector2f = Vector2f(1.0f)){
+               var tcMultiplier : Vector2f = Vector2f(1.0f)) {
 
     fun bind(shaderProgram: ShaderProgram) {
         // Binde die Diffuse-Textur an Textur-Einheit 0 und setze den uniform im Shader

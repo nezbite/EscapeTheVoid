@@ -68,7 +68,6 @@ class MapManager {
     )
 
     fun getNextMapSegment(last: Int): Int {
-        println(last)
         val info = segmentInfos[last]!!
         val followers = mutableListOf<MapSegmentInfo>()
         for (follower in info.possibleFollowers) {

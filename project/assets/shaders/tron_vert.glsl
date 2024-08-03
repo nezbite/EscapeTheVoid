@@ -57,11 +57,11 @@ void main() {
     // Vektor zum Kameraposition im Viewspace berechnen
     vertexData.toCameraVector = -viewSpacePos.xyz;
 
-//    // Vektor zum Point-Light im Viewspace berechnen
-//    vertexData.toPointLightVector = pointLightPosition - vertexData.fragPosition;
-//
-//    // Vektor zum Spot-Light im Viewspace berechnen
-//    vertexData.toSpotLightVector = spotLightPosition - vertexData.fragPosition;
+    //    // Vektor zum Point-Light im Viewspace berechnen
+    //    vertexData.toPointLightVector = pointLightPosition - vertexData.fragPosition;
+    //
+    //    // Vektor zum Spot-Light im Viewspace berechnen
+    //    vertexData.toSpotLightVector = spotLightPosition - vertexData.fragPosition;
 
     // Setzen der Position für den Vertex
     gl_Position = proj_matrix * viewSpacePos;

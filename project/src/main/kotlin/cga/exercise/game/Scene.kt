@@ -1,6 +1,6 @@
 package cga.exercise.game
 
-import cga.exercise.components.camera.TronCamera
+import cga.exercise.components.camera.Camera
 import cga.exercise.components.collision.BoxCollider
 import cga.exercise.components.geometry.*
 import cga.exercise.components.light.PointLight
@@ -9,22 +9,26 @@ import cga.exercise.components.shader.ShaderProgram
 import cga.framework.GLError
 import cga.framework.GameWindow
 import cga.framework.ModelLoader
-import cga.framework.OBJLoader
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL20.*
 import kotlin.math.abs
-import kotlin.system.measureTimeMillis
 
 class Scene(private val window: GameWindow) {
 
     private val staticShader: ShaderProgram =
-        ShaderProgram("project/assets/shaders/tron_vert.glsl", "project/assets/shaders/tron_frag.glsl")
-    private val dissolveShader: ShaderProgram =
-        ShaderProgram("project/assets/shaders/car_vert_d.glsl", "project/assets/shaders/car_frag_d.glsl")
+        ShaderProgram("assets/shaders/car_vert_d.glsl", "assets/shaders/car_frag_d.glsl")
+//    private val dissolveShader: ShaderProgram =
+//        ShaderProgram("assets/shaders/car_vert_d.glsl", "assets/shaders/car_frag_d.glsl")
 
 //    private lateinit var pointLight: PointLight
 //    private lateinit var spotLight: SpotLight
+
+    val GS_MENU = 0
+    val GS_STARTING = 1
+    val GS_GAME = 2
+
+    private var gameState = GS_MENU
 
 
     private var dx: Double = 0.0
@@ -37,15 +41,16 @@ class Scene(private val window: GameWindow) {
     private var pointLights = mutableListOf<PointLight>()
     private var carRenderables = mutableListOf<Renderable>()
 
-    private var tronCamera: TronCamera = TronCamera()
+    private var camera: Camera = Camera()
+    private var cameraHolder: Transformable = Transformable()
 
 
     private lateinit var player: Renderable
-    private lateinit var backWheels: Transformable
+    private lateinit var backWheels: Renderable
     private lateinit var frontLeftWheelTurning: Transformable
     private lateinit var frontRightWheelTurning: Transformable
-    private lateinit var frontLeftWheel: Transformable
-    private lateinit var frontRightWheel: Transformable
+    private lateinit var frontLeftWheel: Renderable
+    private lateinit var frontRightWheel: Renderable
 
     private var mapManager = MapManager()
 
@@ -58,6 +63,18 @@ class Scene(private val window: GameWindow) {
 
     val HIGHWAY_DIVIDER = 5.8f
 
+
+    // UI
+//    val CAMERA_HOLDER_START_POS = Vector3f(2.5f, 5f, -.2f)
+//    val CAMERA_HOLDER_START_ROT = Vector3f(Math.toRadians(-90.0).toFloat(), 0.0f, 0.0f)
+    val CAMERA_HOLDER_START_POS = Vector3f(2.4f, 2f, -.2f)
+    val CAMERA_HOLDER_START_ROT = Vector3f(0f, Math.toRadians(90.0).toFloat(), 0f)
+    val CAMERA_HOLDER_END_POS = Vector3f(0f, 4f, -5f)
+    val CAMERA_HOLDER_END_ROT = Vector3f(0f, Math.toRadians(180.0).toFloat(), 0f)
+    val CAMERA_START_ROT = Vector3f(-.5f, 0f, 0f)
+    val CAMERA_END_ROT = Vector3f(0.0f, 0.0f, Math.toRadians(180.0).toFloat())
+
+    private lateinit var uiTitle: Renderable
 
     // Debug
     private var renderCollisions = false
@@ -72,20 +89,30 @@ class Scene(private val window: GameWindow) {
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_LESS)
 
-        tronCamera.translate(Vector3f(0.0f, 0.0f, 4.0f))
+        camera.parent = cameraHolder
+        cameraHolder.translate(CAMERA_HOLDER_START_POS)
+        cameraHolder.rotate(CAMERA_HOLDER_START_ROT.x, CAMERA_HOLDER_START_ROT.y, CAMERA_HOLDER_START_ROT.z)
+        camera.rotate(CAMERA_START_ROT.x, CAMERA_START_ROT.y, CAMERA_START_ROT.z)
+        camera.fov = 60f
 
+        // Setting up UI
+        uiTitle = ModelLoader.loadModel("assets/UI/Title.obj", -.5f,  Math.toRadians(90.0).toFloat(), 0f)!!
+        uiTitle.scale(Vector3f(.4f))
+        uiTitle.translate(Vector3f(0f, 3.7f, 3f))
 
         // Setting up Car and Components
 
-        val carModel = ModelLoader.loadModel("project/assets/Car/Car.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val carModel = ModelLoader.loadModel("assets/Car/Car.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val backWheelsModel =
-            ModelLoader.loadModel("project/assets/Car/BackWheels.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+            ModelLoader.loadModel("assets/Car/BackWheels.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val frontLeftWheelModel =
-            ModelLoader.loadModel("project/assets/Car/FLWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+            ModelLoader.loadModel("assets/Car/FLWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val frontRightWheelModel =
-            ModelLoader.loadModel("project/assets/Car/FRWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+            ModelLoader.loadModel("assets/Car/FRWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
 
-        val cubeModel = ModelLoader.loadModel("project/assets/Environment/cube.obj", 0f, 0f, 0f)
+        val testCube = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
+
+        val cubeModel = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
         if (carModel != null && backWheelsModel != null && frontLeftWheelModel != null && frontRightWheelModel != null) {
             carModel.scale(Vector3f(0.8f))
             backWheelsModel.parent = carModel
@@ -95,6 +122,8 @@ class Scene(private val window: GameWindow) {
             frWheelObject.parent = carModel
             frontLeftWheelModel.parent = flWheelObject
             frontRightWheelModel.parent = frWheelObject
+
+            testCube!!.scale(Vector3f(0.1f, 1f, 0.1f))
 
             carRenderables.add(backWheelsModel)
             carRenderables.add(frontLeftWheelModel)
@@ -156,10 +185,11 @@ class Scene(private val window: GameWindow) {
 
     fun render(dt: Float, t: Float) {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
         staticShader.use()
 
         // Bind camera
-        tronCamera.bind(staticShader)
+        camera.bind(staticShader)
 
 
         // Render Renderables
@@ -169,6 +199,10 @@ class Scene(private val window: GameWindow) {
 
         for (light in pointLights) {
             light.bind(staticShader)
+        }
+
+        if (gameState == GS_MENU || gameState == GS_STARTING) {
+            uiTitle.render(staticShader)
         }
 
         // Render Map Segments
@@ -186,21 +220,15 @@ class Scene(private val window: GameWindow) {
         }
 
         for (renderable in carRenderables) {
-            if (shouldDissolve) {
-                dissolveShader.use()
-                dissolveShader.setUniform("dissolveFactor",dissolveFactor)
-                val elapsedTime = (System.currentTimeMillis() - startTime) / 1000.0f
-                dissolveShader.setUniform("time", elapsedTime)
-                renderable.render(dissolveShader)
-            } else {
-                renderable.render(staticShader)
-            }
+            renderable.render(staticShader)
         }
 
         staticShader.cleanup()
-        dissolveShader.cleanup()
+//        dissolveShader.cleanup()
     }
 
+
+    // Car Data
     var velocity = 0.0f
     var friction = 1.0f
     var maxSpeed = 50f
@@ -210,10 +238,56 @@ class Scene(private val window: GameWindow) {
     val rotateMul = 0.5f * Math.PI.toFloat()
     var acceleratorState = 0.0f; // rollend
 
+    var menuAnimTime = 0f
+
     fun update(dt: Float, t: Float) {
 
-        accelerationInput(dt)
-        steeringInput()
+        if (dissolveFactor < 1f && shouldDissolve) {
+            println(dissolveFactor)
+            player.dissolveFactor = dissolveFactor
+            backWheels.dissolveFactor = dissolveFactor
+            frontLeftWheel.dissolveFactor = dissolveFactor
+            frontRightWheel.dissolveFactor = dissolveFactor
+
+            dissolveFactor += dt/2
+        } else {
+            accelerationInput(dt)
+            steeringInput()
+        }
+
+        if (gameState == GS_MENU) {
+
+            steeringInput()
+            updateWheelSpin(dt)
+            return
+        } else if (gameState == GS_STARTING) {
+            if (menuAnimTime > 1f) {
+                gameState = GS_GAME
+                cameraHolder.setRotation(0f, 0f, 0f)
+            } else {
+                val hpos = Vector3f(CAMERA_HOLDER_START_POS).lerp(player.getWorldPosition().add(CAMERA_HOLDER_END_POS), menuAnimTime)
+                val fov = 60f + 28f * Math.min(menuAnimTime, 1f)
+
+                camera.fov = fov
+
+                cameraHolder.rotate(0f, Math.toRadians(90.0*dt).toFloat(), 0f)
+                cameraHolder.setPosition(hpos)
+
+                acceleratorState = menuAnimTime
+                menuAnimTime += dt
+
+
+                steeringInput()
+
+                val roll = targetRotation * dt * Math.min(velocity / 5, 1f)
+                player.rotate(0.0f, roll, 0.0f)
+
+                velocity = velocity * (1 - dt * friction) + (acceleratorState * maxSpeed) * (dt * friction)
+                player.translate(Vector3f(0.0f, 0.0f, -velocity * dt))
+                updateWheelSpin(dt)
+            }
+            return
+        }
 
         // Velocity calculation
         velocity = velocity * (1 - dt * friction) + (acceleratorState * maxSpeed) * (dt * friction)
@@ -227,7 +301,7 @@ class Scene(private val window: GameWindow) {
         updateCollisions()
 
         // Effects
-        tronCamera.fov = 80f + 20f * Math.min(velocity / maxSpeed, 1f)
+        camera.fov = 80f + 20f * Math.min(velocity / maxSpeed, 1f)
 
         // Camera Orbit
 //        updateCameraOrbit()
@@ -250,9 +324,10 @@ class Scene(private val window: GameWindow) {
             renderCollisions = !renderCollisions
         }
         if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-
            shouldDissolve = !shouldDissolve
-
+        }
+        if (key == GLFW_KEY_W && action == GLFW_PRESS && gameState == GS_MENU) {
+            gameState = GS_STARTING
         }
     }
 
@@ -311,6 +386,7 @@ class Scene(private val window: GameWindow) {
                 targetRotation = -3f
             } else {
                 velocity = -velocity * .8f
+                shouldDissolve = true
             }
         }
 
@@ -320,13 +396,13 @@ class Scene(private val window: GameWindow) {
 
     private fun updateCamera(dt: Float) {
         cameraAngle = lerp(targetRotation*.1f, cameraAngle, dt)
-        tronCamera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
-        tronCamera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
+        camera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
+        camera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
     }
 
     private fun updateCameraOrbit() {
         // Set Camera Rotation
-        tronCamera.setRotation(0f, (-yRotation + 1.5).toFloat(),0f)
+        camera.setRotation(0f, (-yRotation + 1.5).toFloat(),0f)
 
         if (dx > 1) {
             dx = 0.0
@@ -335,7 +411,7 @@ class Scene(private val window: GameWindow) {
         // Calculate Camera Position
         yRotation += dx
         val cameraPosition = player.getWorldPosition().add(getOrbitVector(5.0f, yRotation))
-        tronCamera.setPosition(cameraPosition)
+        camera.setPosition(cameraPosition)
 
         dx=0.0
         dy=0.0
