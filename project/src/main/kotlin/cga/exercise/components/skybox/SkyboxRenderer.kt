@@ -1,12 +1,12 @@
 package cga.exercise.components.skybox
 
-import cga.exercise.components.camera.TronCamera
+import cga.exercise.components.camera.Camera
 import cga.exercise.components.shader.ShaderProgram
 import org.lwjgl.opengl.GL30.*
 
 class SkyboxRenderer(private val skyboxShaderProgram: ShaderProgram) {
 
-    fun render(skybox: Skybox, camera: TronCamera) {
+    fun render(skybox: Skybox, camera: Camera) {
         skyboxShaderProgram.use()
 
         val viewMatrix = camera.getCalculateViewMatrix().also {

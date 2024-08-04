@@ -5,7 +5,7 @@ import cga.exercise.components.texture.Texture2D
 import org.joml.Vector3f
 
 class Dissolvable(
-    var noiseTexture: Texture2D = Texture2D("project/assets/textures/noiseMap.png",true),
+    var noiseTexture: Texture2D = Texture2D("assets/textures/noiseMap.png",true),
     var colorOverlay: Vector3f = Vector3f(0.0f)
 ) {
     fun bind(shaderProgram: ShaderProgram) {

@@ -1,6 +1,5 @@
 package cga.exercise.game
 
-import SkyboxRenderer
 import cga.exercise.components.camera.Camera
 import cga.exercise.components.collision.BoxCollider
 import cga.exercise.components.geometry.*
@@ -19,7 +18,7 @@ import kotlin.math.abs
 import kotlin.random.Random
 
 class Scene(private val window: GameWindow) {
-    private val staticShader: ShaderProgram = ShaderProgram("project/assets/shaders/tron_vert.glsl", "project/assets/shaders/tron_frag.glsl")
+    private val staticShader: ShaderProgram = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
 //    private val dissolveShader: ShaderProgram =
 //        ShaderProgram("assets/shaders/car_vert_d.glsl", "assets/shaders/car_frag_d.glsl")
 
@@ -105,7 +104,7 @@ class Scene(private val window: GameWindow) {
     //scene setup
     init {
 
-        skyboxShaderProgram = ShaderProgram("project/assets/shaders/skybox_vert.glsl","project/assets/shaders/skybox_frag.glsl")
+        skyboxShaderProgram = ShaderProgram("assets/shaders/skybox_vert.glsl","assets/shaders/skybox_frag.glsl")
         skybox = Skybox.createSkybox()
         skyboxRenderer = SkyboxRenderer(skyboxShaderProgram)
 
@@ -176,7 +175,7 @@ class Scene(private val window: GameWindow) {
 
         val testCube = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
         
-        val cubeModel = ModelLoader.loadModel("project/assets/Environment/cube.obj", 0f, 0f, 0f)
+        val cubeModel = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
         if (carModel != null && backWheelsModel != null && frontLeftWheelModel != null && frontRightWheelModel != null) {
             carModel.scale(Vector3f(0.8f))
             backWheelsModel.parent = carModel
@@ -252,8 +251,8 @@ class Scene(private val window: GameWindow) {
 
         glDepthFunc(GL_LEQUAL)
         glDepthMask(false)
-        tronCamera.bind(skyboxShaderProgram)
-        skyboxRenderer.render(skybox,tronCamera)
+        camera.bind(skyboxShaderProgram)
+        skyboxRenderer.render(skybox, camera)
         glDepthMask(true)
         glDepthFunc(GL_LESS)
         

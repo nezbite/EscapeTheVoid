@@ -77,12 +77,12 @@ class Skybox(
             // Load cubemap textures
             val textureId = loadCubemap(
                 arrayOf(
-                    "project/assets/Environment/posx.jpg",
-                    "project/assets/Environment/negx.jpg",
-                    "project/assets/Environment/posy.jpg",
-                    "project/assets/Environment/negy.jpg",
-                    "project/assets/Environment/posz.jpg",
-                    "project/assets/Environment/negz.jpg"
+                    "assets/Skybox/left.png",
+                    "assets/Skybox/right.png",
+                    "assets/Skybox/up.png",
+                    "assets/Skybox/down.png",
+                    "assets/Skybox/front.png",
+                    "assets/Skybox/back.png"
                 )
             )
 
