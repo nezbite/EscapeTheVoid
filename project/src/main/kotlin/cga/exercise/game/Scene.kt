@@ -27,6 +27,7 @@ class Scene(private val window: GameWindow) {
     val GS_MENU = 0
     val GS_STARTING = 1
     val GS_GAME = 2
+    val GS_GAMEOVER = 3
 
     private var gameState = GS_MENU
 
@@ -65,16 +66,31 @@ class Scene(private val window: GameWindow) {
 
 
     // UI
-//    val CAMERA_HOLDER_START_POS = Vector3f(2.5f, 5f, -.2f)
-//    val CAMERA_HOLDER_START_ROT = Vector3f(Math.toRadians(-90.0).toFloat(), 0.0f, 0.0f)
     val CAMERA_HOLDER_START_POS = Vector3f(2.4f, 2f, -.2f)
     val CAMERA_HOLDER_START_ROT = Vector3f(0f, Math.toRadians(90.0).toFloat(), 0f)
     val CAMERA_HOLDER_END_POS = Vector3f(0f, 4f, -5f)
-    val CAMERA_HOLDER_END_ROT = Vector3f(0f, Math.toRadians(180.0).toFloat(), 0f)
     val CAMERA_START_ROT = Vector3f(-.5f, 0f, 0f)
-    val CAMERA_END_ROT = Vector3f(0.0f, 0.0f, Math.toRadians(180.0).toFloat())
 
-    private lateinit var uiTitle: Renderable
+    private var uiTitle: Renderable
+
+    private var uiScore: Transformable
+    private var uiDigit1: Renderable
+    private var uiDigit2: Renderable
+    private var uiDigit3: Renderable
+    private var uiDigit4: Renderable
+
+    private var ui0: Renderable
+    private var ui1: Renderable
+    private var ui2: Renderable
+    private var ui3: Renderable
+    private var ui4: Renderable
+    private var ui5: Renderable
+    private var ui6: Renderable
+    private var ui7: Renderable
+    private var ui8: Renderable
+    private var ui9: Renderable
+
+    private var uiGameOver: Renderable
 
     // Debug
     private var renderCollisions = false
@@ -99,6 +115,43 @@ class Scene(private val window: GameWindow) {
         uiTitle = ModelLoader.loadModel("assets/UI/Title.obj", -.5f,  Math.toRadians(90.0).toFloat(), 0f)!!
         uiTitle.scale(Vector3f(.4f))
         uiTitle.translate(Vector3f(0f, 3.7f, 3f))
+
+        val uiNumberPitch = -.5f
+        val uiNumberYaw = Math.toRadians(180.0).toFloat()
+        val uiNumberRoll = 0f
+        ui0 = ModelLoader.loadModel("assets/UI/0.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        ui1 = ModelLoader.loadModel("assets/UI/1.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        ui2 = ModelLoader.loadModel("assets/UI/2.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        ui3 = ModelLoader.loadModel("assets/UI/3.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        ui4 = ModelLoader.loadModel("assets/UI/4.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        ui5 = ModelLoader.loadModel("assets/UI/5.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        ui6 = ModelLoader.loadModel("assets/UI/6.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        ui7 = ModelLoader.loadModel("assets/UI/7.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        ui8 = ModelLoader.loadModel("assets/UI/8.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        ui9 = ModelLoader.loadModel("assets/UI/9.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+
+        uiScore = Transformable()
+        uiDigit1 = ui0.copy()
+        uiDigit2 = ui0.copy()
+        uiDigit3 = ui0.copy()
+        uiDigit4 = ui0.copy()
+
+        uiDigit1.parent = uiScore
+        uiDigit2.parent = uiScore
+        uiDigit3.parent = uiScore
+        uiDigit4.parent = uiScore
+        uiDigit2.translate(Vector3f(-.5f, 0f, 0f))
+        uiDigit3.translate(Vector3f(-1f, 0f, 0f))
+        uiDigit4.translate(Vector3f(-1.5f, 0f, 0f))
+
+        uiScore.scale(Vector3f(.1f))
+
+
+        uiGameOver = ModelLoader.loadModel("assets/UI/GameOver.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        uiGameOver.scale(Vector3f(.2f))
+
+
+
 
         // Setting up Car and Components
 
@@ -203,6 +256,21 @@ class Scene(private val window: GameWindow) {
 
         if (gameState == GS_MENU || gameState == GS_STARTING) {
             uiTitle.render(staticShader)
+            uiDigit1.render(staticShader)
+            uiDigit2.render(staticShader)
+            uiDigit3.render(staticShader)
+            uiDigit4.render(staticShader)
+        } else if (gameState == GS_GAMEOVER) {
+            uiGameOver.render(staticShader)
+            uiDigit1.render(staticShader)
+            uiDigit2.render(staticShader)
+            uiDigit3.render(staticShader)
+            uiDigit4.render(staticShader)
+        } else {
+            uiDigit1.render(staticShader)
+            uiDigit2.render(staticShader)
+            uiDigit3.render(staticShader)
+            uiDigit4.render(staticShader)
         }
 
         // Render Map Segments
@@ -289,6 +357,16 @@ class Scene(private val window: GameWindow) {
             return
         }
 
+        if (gameState == GS_GAMEOVER) {
+            val roll = targetRotation * dt * Math.min(velocity / 5, 1f)
+            player.rotate(0.0f, roll, 0.0f)
+
+            velocity = velocity * (1 - dt * friction) + (acceleratorState * maxSpeed) * (dt * friction)
+            player.translate(Vector3f(0.0f, 0.0f, -velocity * dt))
+            updateWheelSpin(dt)
+            return
+        }
+
         // Velocity calculation
         velocity = velocity * (1 - dt * friction) + (acceleratorState * maxSpeed) * (dt * friction)
 
@@ -301,7 +379,10 @@ class Scene(private val window: GameWindow) {
         updateCollisions()
 
         // Effects
-        camera.fov = 80f + 20f * Math.min(velocity / maxSpeed, 1f)
+        camera.fov = 80f + 20f * Math.min(abs(velocity) / maxSpeed, 1f)
+
+        // Show Score
+        updateScore()
 
         // Camera Orbit
 //        updateCameraOrbit()
@@ -309,6 +390,7 @@ class Scene(private val window: GameWindow) {
 
         // Car Components
         updateWheelSpin(dt)
+
 
 
         // Map Manager
@@ -386,7 +468,7 @@ class Scene(private val window: GameWindow) {
                 targetRotation = -3f
             } else {
                 velocity = -velocity * .8f
-                shouldDissolve = true
+                gameOver()
             }
         }
 
@@ -398,6 +480,57 @@ class Scene(private val window: GameWindow) {
         cameraAngle = lerp(targetRotation*.1f, cameraAngle, dt)
         camera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
         camera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
+        uiScore.setRotation(0f, 0f, -cameraAngle)
+        uiScore.scale(Vector3f(.1f*camera.fov/60f))
+        val lowFovPos = Vector3f(.15f, 4.13f, -4f)
+        val highFovPos = Vector3f(.15f, 4.3f, -4f)
+        val desiredPos = if (gameState == GS_GAMEOVER) {
+            lowFovPos.lerp(highFovPos, (camera.fov-80f)/20).add(Vector3f(0f, -1f, 0f))
+        } else {
+            lowFovPos.lerp(highFovPos, (camera.fov-80f)/20)
+        }
+        uiScore.setPosition(player.getWorldPosition().add(desiredPos))
+
+        uiGameOver.setPosition(player.getWorldPosition().add(Vector3f(.45f, 3.8f, -4.5f)))
+    }
+
+    private fun updateScore() {
+        val score = getScore()
+        val digit1: Int = score / 1000
+        val digit2: Int = (score % 1000) / 100
+        val digit3: Int = (score % 100) / 10
+        val digit4: Int = score % 10
+
+
+        uiDigit1.meshes = getNumberModel(digit1).meshes
+        uiDigit2.meshes = getNumberModel(digit2).meshes
+        uiDigit3.meshes = getNumberModel(digit3).meshes
+        uiDigit4.meshes = getNumberModel(digit4).meshes
+    }
+
+    private fun gameOver() {
+        shouldDissolve = true
+        gameState = GS_GAMEOVER
+    }
+
+    private fun getScore(): Int {
+        return player.getWorldPosition().z.toInt()/10
+    }
+
+    private fun getNumberModel(number: Int): Renderable {
+        return when (number) {
+            0 -> ui0
+            1 -> ui1
+            2 -> ui2
+            3 -> ui3
+            4 -> ui4
+            5 -> ui5
+            6 -> ui6
+            7 -> ui7
+            8 -> ui8
+            9 -> ui9
+            else -> ui0
+        }
     }
 
     private fun updateCameraOrbit() {
