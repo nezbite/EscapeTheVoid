@@ -19,19 +19,21 @@ out struct VertexData
     vec2 texCoord; // Texturkoordinaten
     vec3 fragPosition; // Fragmentsposition im Viewspace
     vec3 toCameraVector; // Vektor zum Kameraposition im Viewspace
-    vec3 toPointLightVector; // Vektor zum Point-Light im Viewspace
-    vec3 toSpotLightVector; // Vektor zum Spot-Light im Viewspace
+    vec3 toPointLightVector[10]; // Vektoren zu Point Lights im Viewspace
+    vec3 toSpotLightVector[10]; // Vektoren zu Spot Lights im Viewspace
 } vertexData;
 
-// Uniforms für Point Light
-uniform vec3 pointLightPosition;
-uniform vec3 pointLightColor;
+// Anzahl der Point Lights und Spot Lights
+uniform int numPointLights;
+uniform int numSpotLights;
 
-// Uniforms für Spot Light
-uniform vec3 spotLightPosition;
-uniform vec3 spotLightDirection;
-uniform float spotLightInnerCutOff;
-uniform float spotLightOuterCutOff;
+// Uniforms für Point Lights
+uniform vec3 pointLightPositions[10]; // Positionen der Point Lights
+uniform vec3 pointLightColors[10]; // Farben der Point Lights
+
+// Uniforms für Spot Lights
+uniform vec3 spotLightPositions[10]; // Positionen der Spot Lights
+uniform vec3 spotLightDirections[10]; // Richtungen der Spot Lights
 
 void main() {
     // Umwandlung in homogene Koordinaten
@@ -42,7 +44,6 @@ void main() {
     vec4 viewSpacePos = view_matrix * worldSpacePos;
     vertexData.fragPosition = viewSpacePos.xyz / viewSpacePos.w;
 
-
     // Berechnung der Texturkoordinaten mit Multiplikator
     vertexData.texCoord = texCoord * tcMultiplier;
 
@@ -50,18 +51,18 @@ void main() {
     mat4 modelview = view_matrix * model_matrix;
     vertexData.normal = (transpose(inverse(modelview)) * vec4(normal, 0.0)).xyz;
 
-    vertexData.toPointLightVector = (view_matrix * vec4(pointLightPosition, 1.0)).xyz - viewSpacePos.xyz;
+    // Vektor zum Point Light im Viewspace berechnen
+    for (int i = 0; i < numPointLights; i++) {
+        vertexData.toPointLightVector[i] = (view_matrix * vec4(pointLightPositions[i], 1.0)).xyz - vertexData.fragPosition;
+    }
 
-    vertexData.toSpotLightVector = (view_matrix * vec4(spotLightPosition, 1.0)).xyz - viewSpacePos.xyz;
+    // Vektor zum Spot Light im Viewspace berechnen
+    for (int i = 0; i < numSpotLights; i++) {
+        vertexData.toSpotLightVector[i] = (view_matrix * vec4(spotLightPositions[i], 1.0)).xyz - vertexData.fragPosition;
+    }
 
     // Vektor zum Kameraposition im Viewspace berechnen
     vertexData.toCameraVector = -viewSpacePos.xyz;
-
-//    // Vektor zum Point-Light im Viewspace berechnen
-//    vertexData.toPointLightVector = pointLightPosition - vertexData.fragPosition;
-//
-//    // Vektor zum Spot-Light im Viewspace berechnen
-//    vertexData.toSpotLightVector = spotLightPosition - vertexData.fragPosition;
 
     // Setzen der Position für den Vertex
     gl_Position = proj_matrix * viewSpacePos;

@@ -3,7 +3,10 @@ package cga.exercise.game
 import cga.exercise.components.camera.Camera
 import cga.exercise.components.collision.BoxCollider
 import cga.exercise.components.geometry.*
+import cga.exercise.components.light.DirectionalLight
+import cga.exercise.components.light.LightManager
 import cga.exercise.components.light.PointLight
+import cga.exercise.components.light.SpotLight
 import cga.exercise.components.map.MapManager
 import cga.exercise.components.shader.ShaderProgram
 import cga.exercise.components.skybox.Skybox
@@ -19,11 +22,8 @@ import kotlin.random.Random
 
 class Scene(private val window: GameWindow) {
     private val staticShader: ShaderProgram = ShaderProgram("assets/shaders/main_vert.glsl", "assets/shaders/main_frag.glsl")
-//    private val dissolveShader: ShaderProgram =
-//        ShaderProgram("assets/shaders/car_vert_d.glsl", "assets/shaders/car_frag_d.glsl")
 
-//    private lateinit var pointLight: PointLight
-//    private lateinit var spotLight: SpotLight
+    val lightManager = LightManager()
 
     val GS_MENU = 0
     val GS_STARTING = 1
@@ -40,7 +40,6 @@ class Scene(private val window: GameWindow) {
     private var oldYpos: Double = 0.0
 
     private var renderables = mutableListOf<Renderable>()
-    private var pointLights = mutableListOf<PointLight>()
     private var carRenderables = mutableListOf<Renderable>()
 
     private var camera: Camera = Camera()
@@ -104,6 +103,15 @@ class Scene(private val window: GameWindow) {
     //scene setup
     init {
 
+        // Add lights
+        lightManager.addDirectionalLight(DirectionalLight(Vector3f(1.0f, 1.0f, -1.0f), Vector3f(1.5f, 3.0f, 4.0f), 0.1f))
+        lightManager.addSpotLight(SpotLight(Vector3f(0.0f,.5f,0.0f),Vector3f(0.0f,-1.0f,0.0f), Vector3f(1.0f),15.0f,60.0f))
+        lightManager.addPointLight(PointLight(Vector3f(3.0f),Vector3f(1.0f)))
+
+        lightManager.spotLights[0].rotate(180.0f,0.0f,0.0f)
+
+
+        // Add Skybox
         skyboxShaderProgram = ShaderProgram("assets/shaders/skybox_vert.glsl","assets/shaders/skybox_frag.glsl")
         skybox = Skybox.createSkybox()
         skyboxRenderer = SkyboxRenderer(skyboxShaderProgram)
@@ -258,16 +266,19 @@ class Scene(private val window: GameWindow) {
         
         staticShader.use()
 
+        lightManager.bindSpotLights(staticShader)
+        lightManager.bindPointLights(staticShader)
+
         // Bind camera
         camera.bind(staticShader)
+
+        // Bind light
+        lightManager.bindDirectionalLights(staticShader)
+
 
         // Render Renderables
         for (renderable in renderables) {
             renderable.render(staticShader)
-        }
-
-        for (light in pointLights) {
-            light.bind(staticShader)
         }
 
         if (gameState == GS_MENU || gameState == GS_STARTING) {
@@ -308,7 +319,6 @@ class Scene(private val window: GameWindow) {
         }
 
         /*staticShader.cleanup()
-        dissolveShader.cleanup()
         skyboxShaderProgram.cleanup()*/
     }
 
