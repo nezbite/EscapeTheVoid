@@ -36,6 +36,11 @@ uniform float gamma = 2.2;
 // Uniform für Farb-Overlay
 uniform vec3 colorOverlay;
 
+// Uniforms für Dissolve-Effekt
+uniform sampler2D noiseTexture;
+uniform float dissolveFactor;
+uniform float time;
+
 // Ausgabe des Fragment-Shaders
 out vec4 FragColor;
 
@@ -82,7 +87,6 @@ vec3 calculateBlinnPhongSpotLight(vec3 fragPosition, vec3 normal, vec3 viewDir)
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = diff * spotLightColor * intensity * attenuation;
 
-
     vec3 halfDir = normalize(lightDir + viewDir);
     float spec = pow(max(dot(normal, halfDir), 0.0), material_shininess);
     vec3 specular = material_shininess * spec * spotLightColor * intensity * attenuation;
@@ -91,6 +95,13 @@ vec3 calculateBlinnPhongSpotLight(vec3 fragPosition, vec3 normal, vec3 viewDir)
 }
 
 void main() {
+
+    // Dissolve-Effekt anwenden
+    float noiseValue = texture(noiseTexture, vertexData.texCoord).r;
+    if (noiseValue < dissolveFactor)
+    {
+        discard;
+    }
     vec3 normalizedNormal = normalize(vertexData.normal);
 
     // Texturfarbe abrufen und in lineare Werte umwandeln
@@ -109,6 +120,10 @@ void main() {
     // Finalen Farbwert setzen basierend auf der Phong-Beleuchtung und emissiven Textur, kombiniert mit Spot-Light-Beleuchtung
     vec3 finalColor = lighting + spotLighting + emissionColor;
 
+
+
+
+
     // Farb-Overlay nur anwenden, wenn es gesetzt ist
     if (colorOverlay != vec3(0.0)) {
         finalColor *= colorOverlay;
@@ -120,3 +135,4 @@ void main() {
     // Umwandlung des finalen Farbwerts in den sRGB Farbraum
     FragColor = vec4(toGamma(finalColor), 1.0);
 }
+
