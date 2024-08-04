@@ -1,11 +1,13 @@
 package cga.exercise.game
 
+import SkyboxRenderer
 import cga.exercise.components.camera.Camera
 import cga.exercise.components.collision.BoxCollider
 import cga.exercise.components.geometry.*
 import cga.exercise.components.light.PointLight
 import cga.exercise.components.map.MapManager
 import cga.exercise.components.shader.ShaderProgram
+import cga.exercise.components.skybox.Skybox
 import cga.framework.GLError
 import cga.framework.GameWindow
 import cga.framework.ModelLoader
@@ -15,9 +17,7 @@ import org.lwjgl.opengl.GL20.*
 import kotlin.math.abs
 
 class Scene(private val window: GameWindow) {
-
-    private val staticShader: ShaderProgram =
-        ShaderProgram("assets/shaders/car_vert_d.glsl", "assets/shaders/car_frag_d.glsl")
+    private val staticShader: ShaderProgram = ShaderProgram("project/assets/shaders/tron_vert.glsl", "project/assets/shaders/tron_frag.glsl")
 //    private val dissolveShader: ShaderProgram =
 //        ShaderProgram("assets/shaders/car_vert_d.glsl", "assets/shaders/car_frag_d.glsl")
 
@@ -80,9 +80,17 @@ class Scene(private val window: GameWindow) {
     private var renderCollisions = false
     private var debugColliders = mutableListOf<Renderable>()
 
+    private lateinit var skybox: Skybox
+    private lateinit var skyboxRenderer: SkyboxRenderer
+    private var skyboxShaderProgram: ShaderProgram
+
 
     //scene setup
     init {
+
+        skyboxShaderProgram = ShaderProgram("project/assets/shaders/skybox_vert.glsl","project/assets/shaders/skybox_frag.glsl")
+        skybox = Skybox.createSkybox()
+
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
 
@@ -102,6 +110,7 @@ class Scene(private val window: GameWindow) {
 
         // Setting up Car and Components
 
+
         val carModel = ModelLoader.loadModel("assets/Car/Car.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val backWheelsModel =
             ModelLoader.loadModel("assets/Car/BackWheels.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
@@ -111,8 +120,8 @@ class Scene(private val window: GameWindow) {
             ModelLoader.loadModel("assets/Car/FRWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
 
         val testCube = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
-
-        val cubeModel = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
+        
+        val cubeModel = ModelLoader.loadModel("project/assets/Environment/cube.obj", 0f, 0f, 0f)
         if (carModel != null && backWheelsModel != null && frontLeftWheelModel != null && frontRightWheelModel != null) {
             carModel.scale(Vector3f(0.8f))
             backWheelsModel.parent = carModel
@@ -164,7 +173,6 @@ class Scene(private val window: GameWindow) {
 
 
         // Setting up Map Manager
-
         val map_tunnelEntry = ModelLoader.loadModel("assets/Environment/MAP_TunnelEntry.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val map_tunnel = ModelLoader.loadModel("assets/Environment/MAP_Tunnel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val map_road1 = ModelLoader.loadModel("assets/Environment/MAP_Road1.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
@@ -191,6 +199,11 @@ class Scene(private val window: GameWindow) {
         // Bind camera
         camera.bind(staticShader)
 
+
+        skyboxShaderProgram.use()
+        skybox.render()
+
+        staticShader.use()
 
         // Render Renderables
         for (renderable in renderables) {
