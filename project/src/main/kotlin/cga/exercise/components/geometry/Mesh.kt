@@ -61,11 +61,13 @@ class Mesh(vertexdata: FloatArray, indexdata: IntArray, attributes: Array<Vertex
         glBindVertexArray(0)
     }
 
-    fun render(shaderProgram: ShaderProgram, color: Vector3f = Vector3f(0f, 0f, 0f)) {
+    fun render(shaderProgram: ShaderProgram, color: Vector3f = Vector3f(0f, 0f, 0f), dissolveFactor: Float = 1f) {
         // Shader-Programm verwenden
         shaderProgram.use()
 
         shaderProgram.setUniform("colorOverlay", color)
+
+        shaderProgram.setUniform("dissolveFactor", dissolveFactor)
 
         // Material binden, falls vorhanden
         material?.bind(shaderProgram)

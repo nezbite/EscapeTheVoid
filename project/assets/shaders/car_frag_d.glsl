@@ -95,6 +95,13 @@ vec3 calculateBlinnPhongSpotLight(vec3 fragPosition, vec3 normal, vec3 viewDir)
 }
 
 void main() {
+
+    // Dissolve-Effekt anwenden
+    float noiseValue = texture(noiseTexture, vertexData.texCoord).r;
+    if (noiseValue < dissolveFactor)
+    {
+        discard;
+    }
     vec3 normalizedNormal = normalize(vertexData.normal);
 
     // Texturfarbe abrufen und in lineare Werte umwandeln
@@ -113,15 +120,6 @@ void main() {
     // Finalen Farbwert setzen basierend auf der Phong-Beleuchtung und emissiven Textur, kombiniert mit Spot-Light-Beleuchtung
     vec3 finalColor = lighting + spotLighting + emissionColor;
 
-    // currentDissolve Factor based on time
-    float currentDissolveFactor = fract(time * 0.2);
-
-    // Dissolve-Effekt anwenden
-        float noiseValue = texture(noiseTexture, vertexData.texCoord).r;
-        if (noiseValue < currentDissolveFactor)
-        {
-            discard;
-        }
 
 
 

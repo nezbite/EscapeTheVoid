@@ -2,7 +2,7 @@ package cga.exercise.components.camera
 
 import cga.exercise.components.geometry.Transformable
 
-class TronCamera(
+class Camera(
     var fov : Float = 90f,
     var aspectRatio : Float = 16f/9f,
     var nearPlane : Float = 0.1f,

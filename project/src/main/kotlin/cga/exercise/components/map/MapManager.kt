@@ -8,18 +8,21 @@ import kotlin.random.Random
  * Class for managing the infinitely generated map
  */
 class MapManager {
-    val MAP_SIZE = 100
+    val MAP_SIZE = 40
     val SEGMENT_SIZE = 3*6
     var segments: Array<MapSegment> = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
     var segmentIds = mutableListOf<Int>()
-    var random = Random(1)
+    lateinit var random: Random
 
     var currentSegment = 0 // Current segment the player is on
     var mapSegment = 0 // Current starting segment of the map
 
     var roadModels = mutableListOf<Renderable>()
 
-    fun init() {
+    fun init(seed: Int = 0) {
+        random = Random(seed)
+        segments = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
+        segmentIds = mutableListOf()
         segmentIds.add(3)
         for (i in 1 .. segments.size) {
             segmentIds.add(getNextMapSegment(segmentIds.last()))
@@ -68,7 +71,6 @@ class MapManager {
     )
 
     fun getNextMapSegment(last: Int): Int {
-        println(last)
         val info = segmentInfos[last]!!
         val followers = mutableListOf<MapSegmentInfo>()
         for (follower in info.possibleFollowers) {
