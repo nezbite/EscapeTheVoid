@@ -2,11 +2,11 @@
 
 out vec4 FragColor;
 
-in vec3 texCoords;
+in vec3 TexCoords;
 
-uniform samplerCube skybox; // Cube Map-Textur
+uniform samplerCube skybox;
 
-void main() {
-    FragColor = texture(skybox, texCoords); // Textur aus der Cube Map abrufen
+void main()
+{
+    FragColor = texture(skybox, TexCoords);  // Verwendung der Cubemap-Textur
 }
-

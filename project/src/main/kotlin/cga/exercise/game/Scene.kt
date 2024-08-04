@@ -8,6 +8,7 @@ import cga.exercise.components.light.PointLight
 import cga.exercise.components.map.MapManager
 import cga.exercise.components.shader.ShaderProgram
 import cga.exercise.components.skybox.Skybox
+import cga.exercise.components.skybox.SkyboxRenderer
 import cga.framework.GLError
 import cga.framework.GameWindow
 import cga.framework.ModelLoader
@@ -97,16 +98,16 @@ class Scene(private val window: GameWindow) {
     private var renderCollisions = false
     private var debugColliders = mutableListOf<Renderable>()
 
-    private lateinit var skybox: Skybox
-    private lateinit var skyboxRenderer: SkyboxRenderer
+    private var skybox: Skybox
+    private var skyboxRenderer: SkyboxRenderer
     private var skyboxShaderProgram: ShaderProgram
-
 
     //scene setup
     init {
 
         skyboxShaderProgram = ShaderProgram("project/assets/shaders/skybox_vert.glsl","project/assets/shaders/skybox_frag.glsl")
         skybox = Skybox.createSkybox()
+        skyboxRenderer = SkyboxRenderer(skyboxShaderProgram)
 
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
@@ -232,6 +233,7 @@ class Scene(private val window: GameWindow) {
         val map_road1 = ModelLoader.loadModel("assets/Environment/MAP_Road1.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val map_road2 = ModelLoader.loadModel("assets/Environment/MAP_Road2.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val map_road3 = ModelLoader.loadModel("assets/Environment/MAP_Road3.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        
         mapManager.roadModels.add(map_tunnelEntry!!)
         mapManager.roadModels.add(map_tunnel!!)
         mapManager.roadModels.add(map_road1!!)
@@ -248,16 +250,17 @@ class Scene(private val window: GameWindow) {
     fun render(dt: Float, t: Float) {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
+        glDepthFunc(GL_LEQUAL)
+        glDepthMask(false)
+        tronCamera.bind(skyboxShaderProgram)
+        skyboxRenderer.render(skybox,tronCamera)
+        glDepthMask(true)
+        glDepthFunc(GL_LESS)
+        
         staticShader.use()
 
         // Bind camera
         camera.bind(staticShader)
-
-
-        skyboxShaderProgram.use()
-        skybox.render()
-
-        staticShader.use()
 
         // Render Renderables
         for (renderable in renderables) {
@@ -305,8 +308,9 @@ class Scene(private val window: GameWindow) {
             renderable.render(staticShader)
         }
 
-        staticShader.cleanup()
-//        dissolveShader.cleanup()
+        /*staticShader.cleanup()
+        dissolveShader.cleanup()
+        skyboxShaderProgram.cleanup()*/
     }
 
 

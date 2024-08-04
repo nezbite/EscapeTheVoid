@@ -1,39 +1,29 @@
-import cga.exercise.components.skybox.Skybox
-import org.lwjgl.opengl.GL20.*
-import org.lwjgl.system.MemoryStack.stackPush
-import org.joml.Matrix4f
-import org.lwjgl.opengl.ARBVertexArrayObject.glBindVertexArray
+package cga.exercise.components.skybox
 
-class SkyboxRenderer(private val skybox: Skybox, private val shaderProgram: Int) {
+import cga.exercise.components.camera.TronCamera
+import cga.exercise.components.shader.ShaderProgram
+import org.lwjgl.opengl.GL30.*
 
-    fun render(projection: Matrix4f, view: Matrix4f) {
-        glUseProgram(shaderProgram)
+class SkyboxRenderer(private val skyboxShaderProgram: ShaderProgram) {
 
-        glBindVertexArray(skybox.vao)
+    fun render(skybox: Skybox, camera: TronCamera) {
+        skyboxShaderProgram.use()
+
+        val viewMatrix = camera.getCalculateViewMatrix().also {
+            it.m30(0f) // Set the camera position to 0
+            it.m31(0f)
+            it.m32(0f)
+        }
+
+        skyboxShaderProgram.setUniform("view", viewMatrix)
+        skyboxShaderProgram.setUniform("projection", camera.getCalculateProjectionMatrix())
+
+        glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.textureId)
+        skyboxShaderProgram.setUniform("skybox", 0)
 
-        // Setze die uniforms für die Shader
-        val projectionLocation = glGetUniformLocation(shaderProgram, "projection")
-        stackPush().use { stack ->
-            val projectionBuffer = stack.mallocFloat(16)
-            projection.get(projectionBuffer)
-            glUniformMatrix4fv(projectionLocation, false, projectionBuffer)
-        }
-
-        // Entferne die Translation von der View-Matrix für die Skybox
-        val viewWithoutTranslation = Matrix4f(view).setTranslation(0f, 0f, 0f)
-        val viewLocation = glGetUniformLocation(shaderProgram, "view")
-        stackPush().use { stack ->
-            val viewBuffer = stack.mallocFloat(16)
-            viewWithoutTranslation.get(viewBuffer)
-            glUniformMatrix4fv(viewLocation, false, viewBuffer)
-        }
-
-        // Zeichne die Skybox
-        glDrawArrays(GL_TRIANGLES, 0, 36)
-
+        glBindVertexArray(skybox.vaoID)
+        glDrawArrays(GL_TRIANGLES, 0, skybox.vertexCount)
         glBindVertexArray(0)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0)
     }
 }
-
