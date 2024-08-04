@@ -13,6 +13,7 @@ import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL20.*
 import kotlin.math.abs
+import kotlin.random.Random
 
 class Scene(private val window: GameWindow) {
 
@@ -229,7 +230,7 @@ class Scene(private val window: GameWindow) {
         mapManager.roadModels.add(map_road2!!)
         mapManager.roadModels.add(map_road3!!)
 
-        mapManager.init()
+        mapManager.init(Random.nextInt())
 
 
         // Background
@@ -412,6 +413,9 @@ class Scene(private val window: GameWindow) {
         if (key == GLFW_KEY_W && action == GLFW_PRESS && gameState == GS_MENU) {
             gameState = GS_STARTING
         }
+        if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && gameState == GS_GAMEOVER) {
+            resetScene()
+        }
     }
 
     fun onMouseMove(xpos: Double, ypos: Double) {
@@ -425,6 +429,31 @@ class Scene(private val window: GameWindow) {
     }
 
     fun cleanup() {}
+
+    private fun resetScene() {
+        player.setPosition(Vector3f(0f, 0f, 0f))
+        player.setRotation(0f, Math.toRadians(180.0).toFloat(), 0f)
+        player.scale(Vector3f(0.8f))
+        velocity = 0f
+        targetRotation = 0f
+        cameraHolder.setRotation(CAMERA_HOLDER_START_ROT.x, CAMERA_HOLDER_START_ROT.y, CAMERA_HOLDER_START_ROT.z)
+        cameraHolder.setPosition(CAMERA_HOLDER_START_POS)
+        camera.setRotation(CAMERA_START_ROT.x, CAMERA_START_ROT.y, CAMERA_START_ROT.z)
+        camera.fov = 60f
+        menuAnimTime = 0f
+        gameState = GS_MENU
+
+        shouldDissolve = false
+        dissolveFactor = 0f
+        player.dissolveFactor = 0f
+        backWheels.dissolveFactor = 0f
+        frontLeftWheel.dissolveFactor = 0f
+        frontRightWheel.dissolveFactor = 0f
+
+
+        mapManager.currentSegment = 0
+        mapManager.init(Random.nextInt())
+    }
 
 
     // Update functions
