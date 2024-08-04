@@ -358,6 +358,7 @@ class Scene(private val window: GameWindow) {
         }
 
         if (gameState == GS_GAMEOVER) {
+            acceleratorState = 0f
             val roll = targetRotation * dt * Math.min(velocity / 5, 1f)
             player.rotate(0.0f, roll, 0.0f)
 
@@ -491,6 +492,8 @@ class Scene(private val window: GameWindow) {
         }
         uiScore.setPosition(player.getWorldPosition().add(desiredPos))
 
+        uiGameOver.setRotation(0f, 0f, -cameraAngle)
+        uiGameOver.scale(Vector3f(.2f))
         uiGameOver.setPosition(player.getWorldPosition().add(Vector3f(.45f, 3.8f, -4.5f)))
     }
 
