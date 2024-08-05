@@ -14,10 +14,12 @@ import cga.exercise.components.skybox.SkyboxRenderer
 import cga.framework.GLError
 import cga.framework.GameWindow
 import cga.framework.ModelLoader
+import org.joml.Math.clamp
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL20.*
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.random.Random
 
 class Scene(private val window: GameWindow) {
@@ -54,6 +56,8 @@ class Scene(private val window: GameWindow) {
     private lateinit var frontRightWheelTurning: Transformable
     private lateinit var frontLeftWheel: Renderable
     private lateinit var frontRightWheel: Renderable
+    private var leftHeadlight: SpotLight
+    private var rightHeadlight: SpotLight
 
     private var mapManager = MapManager()
 
@@ -67,7 +71,8 @@ class Scene(private val window: GameWindow) {
     val HIGHWAY_DIVIDER = 5.8f
 
     private lateinit var void: Renderable
-    private var voidSpeed = 30f
+    private var voidSpeed = 3f
+    private var voidDistance = 100f
 
 
     // UI
@@ -187,8 +192,8 @@ class Scene(private val window: GameWindow) {
         val voidModel = ModelLoader.loadModel("assets/Environment/Void.obj", 0f, 0f, 0f)
 
         void = voidModel!!
-        void.translate(Vector3f(0f, 0f, -100f))
-        void.scale(Vector3f(10f, 1f, 1f))
+        void.translate(Vector3f(0f, 0f, -200f))
+        void.scale(Vector3f(10f, 1.5f, 10f))
         renderables.add(void)
 
         val testCube = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
@@ -242,6 +247,16 @@ class Scene(private val window: GameWindow) {
             debugColliders.add(cubeModel2)*/
 
         }
+
+        // Add Headlights
+        leftHeadlight = SpotLight(Vector3f(-.6f, .8f, -2.5f), Vector3f(0f, 0f, 1f), Vector3f(1f), 25f, 60f)
+        rightHeadlight = SpotLight(Vector3f(.6f, .8f, -2.5f), Vector3f(0f, 0f, 1f), Vector3f(1f), 25f, 60f)
+
+        lightManager.addSpotLight(leftHeadlight)
+        lightManager.addSpotLight(rightHeadlight)
+
+        leftHeadlight.parent = player
+        rightHeadlight.parent = player
 
 
         // Setting up Map Manager
@@ -426,7 +441,7 @@ class Scene(private val window: GameWindow) {
         player.translate(Vector3f(0.0f, 0.0f, -velocity * dt))
 
         // Effects
-        camera.fov = 80f + 20f * Math.min(abs(velocity) / maxSpeed, 1f)
+        camera.fov = 80f + 20f * Math.min(abs(velocity) / maxSpeed, 1f) + 20f * clamp(0f, 1f, 1-(voidDistance/50))
 
         // Show Score
         updateScore()
@@ -443,7 +458,7 @@ class Scene(private val window: GameWindow) {
         updateCollisions()
 
         // Void
-        moveVoid(dt)
+//        moveVoid(dt)
 
 
         // Map Manager
@@ -503,6 +518,8 @@ class Scene(private val window: GameWindow) {
 
         cameraOffset = Vector3f(0f, 4f, -5f)
         cameraRotOffset = Vector3f(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
+
+        void.setPosition(Vector3f(0f, 0f, -200f))
 
 
         mapManager.currentSegment = 0
@@ -564,15 +581,16 @@ class Scene(private val window: GameWindow) {
     var cameraRotOffset = Vector3f(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
 
     private fun updateCamera(dt: Float) {
+        val voidDistanceView = clamp(0f, 1f, 1-(voidDistance/50))
         val cameraPos = if (window.getKeyState(GLFW_KEY_E)) {
             Vector3f(0f, 4f, 5f)
         } else {
-            Vector3f(0f, 4f, -5f)
+            Vector3f(0f, 4f, -5f).add(Vector3f(0f, voidDistanceView*1.8f, voidDistanceView*-2))
         }
         val cameraRot = if (window.getKeyState(GLFW_KEY_E)) {
             Vector3f(-.9f, 0f, 0f)
         } else {
-            Vector3f(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
+            Vector3f(.5f, Math.toRadians(180.0).toFloat(), cameraAngle).add(Vector3f(voidDistanceView*.5f, 0f, 0f))
         }
         cameraOffset = cameraOffset.lerp(cameraPos, dt*4)
         cameraRotOffset = cameraRotOffset.lerp(cameraRot, dt*8)
@@ -638,6 +656,8 @@ class Scene(private val window: GameWindow) {
 
     private fun moveVoid(dt: Float) {
         void.translate(Vector3f(0f, 0f, dt*voidSpeed))
+        voidDistance = player.getWorldPosition().z - void.getWorldPosition().z - 100
+        println(voidDistance)
     }
 
     private fun updateCameraOrbit() {
