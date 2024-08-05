@@ -110,7 +110,7 @@ class Scene(private val window: GameWindow) {
 
         // Add lights
         lightManager.addDirectionalLight(DirectionalLight(Vector3f(1.0f, 1.0f, -1.0f), Vector3f(1.5f, 3.0f, 4.0f), 0.1f))
-        lightManager.addSpotLight(SpotLight(Vector3f(0.0f,1.0f,0.0f),Vector3f(1.0f,1.0f,1.0f), Vector3f(1.0f,3.0f,1.0f),25.0f,60.0f))
+        lightManager.addSpotLight(SpotLight(Vector3f(0.0f,1.0f,-10.0f),Vector3f(0.0f,0.0f,1.0f), Vector3f(1.0f,3.0f,1.0f),25.0f,60.0f))
         lightManager.addPointLight(PointLight(Vector3f(3.0f),Vector3f(3.0f,1.0f,1.0f)))
 
 
@@ -286,7 +286,6 @@ class Scene(private val window: GameWindow) {
 
         lightManager.bindPointLights(staticShader)
         lightManager.bindSpotLights(staticShader)
-
 
         // Bind camera
         camera.bind(staticShader)

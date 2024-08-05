@@ -3,5 +3,5 @@ package cga.exercise.components.light
 import cga.exercise.components.shader.ShaderProgram
 
 interface IPointLight {
-    fun bind(shaderProgram: ShaderProgram)
+    fun bind(shaderProgram: ShaderProgram,index:Int)
 }

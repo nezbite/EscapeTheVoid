@@ -39,8 +39,7 @@ class LightManager {
         shaderProgram.setUniform("numSpotLights", spotLights.size)
 
         for ((index, light) in spotLights.withIndex()) {
-            println("light.getSpotLightViewMatric() : ${light.getSpotLightViewMatrix()}")
-            light.bind(shaderProgram,index, light.getSpotLightViewMatrix())
+            light.bind(shaderProgram,index)
         }
     }
 
