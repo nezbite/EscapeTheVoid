@@ -115,7 +115,7 @@ class Scene(private val window: GameWindow) {
 
         // Add lights
         lightManager.addDirectionalLight(DirectionalLight(Vector3f(1.0f, 1.0f, -1.0f), Vector3f(1.5f, 3.0f, 4.0f), 0.1f))
-        lightManager.addSpotLight(SpotLight(Vector3f(0.0f,1.0f,-10.0f),Vector3f(0.0f,0.0f,1.0f), Vector3f(1.0f,3.0f,1.0f),25.0f,60.0f))
+//        lightManager.addSpotLight(SpotLight(Vector3f(0.0f,0.5f,0.0f),Vector3f(0.0f,0.0f,1.0f), Vector3f(1.0f,3.0f,1.0f),25.0f,60.0f))
         lightManager.addPointLight(PointLight(Vector3f(3.0f),Vector3f(3.0f,1.0f,1.0f)))
 
 
@@ -249,8 +249,8 @@ class Scene(private val window: GameWindow) {
         }
 
         // Add Headlights
-        leftHeadlight = SpotLight(Vector3f(-.6f, .8f, -2.5f), Vector3f(0f, 0f, 1f), Vector3f(1f), 25f, 60f)
-        rightHeadlight = SpotLight(Vector3f(.6f, .8f, -2.5f), Vector3f(0f, 0f, 1f), Vector3f(1f), 25f, 60f)
+        leftHeadlight = SpotLight(Vector3f(-.6f, 0.1f, -2.5f), Vector3f(0f, -0.3f, 1f), Vector3f(1f), 10f, 20f)
+        rightHeadlight = SpotLight(Vector3f(.6f, 0.1f, -2.5f), Vector3f(0f, -0.3f, 1f), Vector3f(1f), 10f, 20f)
 
         lightManager.addSpotLight(leftHeadlight)
         lightManager.addSpotLight(rightHeadlight)
@@ -307,6 +307,8 @@ class Scene(private val window: GameWindow) {
 
         // Bind light
         lightManager.bindDirectionalLights(staticShader)
+
+
 
 
         // Render Renderables
