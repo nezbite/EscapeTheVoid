@@ -27,18 +27,19 @@ class LightManager {
         }
     }
 
-    fun bindSpotLights(shaderProgram: ShaderProgram) {
-        shaderProgram.setUniform("numSpotlights", spotLights.size)
+    fun bindPointLights(shaderProgram: ShaderProgram) {
+        shaderProgram.setUniform("numPointLights", pointLights.size)
 
-        for ((index, light) in spotLights.withIndex()) {
+        for ((index, light) in pointLights.withIndex()) {
             light.bind(shaderProgram, index)
         }
     }
 
-    fun bindPointLights(shaderProgram: ShaderProgram) {
-        shaderProgram.setUniform("numPointLights", pointLights.size)
+    fun bindSpotLights(shaderProgram: ShaderProgram) {
+        shaderProgram.setUniform("numSpotLights", spotLights.size)
 
         for ((index, light) in spotLights.withIndex()) {
+            println("light.getSpotLightViewMatric() : ${light.getSpotLightViewMatrix()}")
             light.bind(shaderProgram,index, light.getSpotLightViewMatrix())
         }
     }

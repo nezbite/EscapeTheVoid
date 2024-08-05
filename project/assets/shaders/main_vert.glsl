@@ -57,8 +57,8 @@ void main() {
     }
 
     // Vektor zum Spot Light im Viewspace berechnen
-    for (int i = 0; i < numSpotLights; i++) {
-        vertexData.toSpotLightVector[i] = (view_matrix * vec4(spotLightPositions[i], 1.0)).xyz - vertexData.fragPosition;
+    for (int j = 0; j < numSpotLights; j++) {
+        vertexData.toSpotLightVector[j] = (view_matrix * vec4(spotLightPositions[j], 1.0)).xyz - vertexData.fragPosition;
     }
 
     // Vektor zum Kameraposition im Viewspace berechnen

@@ -11,7 +11,7 @@ open class PointLight(var worldPos: Vector3f, var color: Vector3f) : Transformab
 
     fun bind(shaderProgram: ShaderProgram, index: Int) {
         // Set the light position
-        shaderProgram.setUniform("pointLightPositions[$index]", getWorldPosition())
+        shaderProgram.setUniform("pointLightPositions[$index]", this.getWorldPosition())
         // Set the light color
         shaderProgram.setUniform("pointLightColors[$index]", color)
     }

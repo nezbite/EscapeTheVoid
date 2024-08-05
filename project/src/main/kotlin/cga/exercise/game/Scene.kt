@@ -105,10 +105,8 @@ class Scene(private val window: GameWindow) {
 
         // Add lights
         lightManager.addDirectionalLight(DirectionalLight(Vector3f(1.0f, 1.0f, -1.0f), Vector3f(1.5f, 3.0f, 4.0f), 0.1f))
-        lightManager.addSpotLight(SpotLight(Vector3f(0.0f,.5f,0.0f),Vector3f(0.0f,-1.0f,0.0f), Vector3f(1.0f),15.0f,60.0f))
-        lightManager.addPointLight(PointLight(Vector3f(3.0f),Vector3f(1.0f)))
-
-        lightManager.spotLights[0].rotate(180.0f,0.0f,0.0f)
+        lightManager.addSpotLight(SpotLight(Vector3f(0.0f,1.0f,0.0f),Vector3f(1.0f,1.0f,1.0f), Vector3f(1.0f,3.0f,1.0f),25.0f,60.0f))
+        lightManager.addPointLight(PointLight(Vector3f(3.0f),Vector3f(3.0f,1.0f,1.0f)))
 
 
         // Add Skybox
@@ -257,6 +255,8 @@ class Scene(private val window: GameWindow) {
     fun render(dt: Float, t: Float) {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
+
+
         glDepthFunc(GL_LEQUAL)
         glDepthMask(false)
         camera.bind(skyboxShaderProgram)
@@ -266,8 +266,9 @@ class Scene(private val window: GameWindow) {
         
         staticShader.use()
 
-        lightManager.bindSpotLights(staticShader)
         lightManager.bindPointLights(staticShader)
+        lightManager.bindSpotLights(staticShader)
+
 
         // Bind camera
         camera.bind(staticShader)
