@@ -45,6 +45,8 @@ class Scene(private val window: GameWindow) {
     private var camera: Camera = Camera()
     private var cameraHolder: Transformable = Transformable()
 
+    private var backView = false
+
 
     private lateinit var player: Renderable
     private lateinit var backWheels: Renderable
@@ -63,6 +65,9 @@ class Scene(private val window: GameWindow) {
     private var dissolveFactor = 0.0f
 
     val HIGHWAY_DIVIDER = 5.8f
+
+    private lateinit var void: Renderable
+    private var voidSpeed = 30f
 
 
     // UI
@@ -179,6 +184,13 @@ class Scene(private val window: GameWindow) {
         val frontRightWheelModel =
             ModelLoader.loadModel("assets/Car/FRWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
 
+        val voidModel = ModelLoader.loadModel("assets/Environment/Void.obj", 0f, 0f, 0f)
+
+        void = voidModel!!
+        void.translate(Vector3f(0f, 0f, -100f))
+        void.scale(Vector3f(10f, 1f, 1f))
+        renderables.add(void)
+
         val testCube = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
         
         val cubeModel = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
@@ -245,6 +257,12 @@ class Scene(private val window: GameWindow) {
         mapManager.roadModels.add(map_road2!!)
         mapManager.roadModels.add(map_road3!!)
 
+        val map_far1 = ModelLoader.loadModel("assets/Environment/Far1.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+        val map_far2 = ModelLoader.loadModel("assets/Environment/Far2.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+
+        mapManager.farModels.add(map_far1!!)
+        mapManager.farModels.add(map_far2!!)
+
         mapManager.init(Random.nextInt())
 
 
@@ -303,6 +321,10 @@ class Scene(private val window: GameWindow) {
 
         // Render Map Segments
         for (segment in mapManager.segments) {
+            segment.renderable.render(staticShader)
+        }
+
+        for (segment in mapManager.farSegments) {
             segment.renderable.render(staticShader)
         }
 
@@ -404,9 +426,6 @@ class Scene(private val window: GameWindow) {
         player.rotate(0.0f, roll, 0.0f)
         player.translate(Vector3f(0.0f, 0.0f, -velocity * dt))
 
-        // Collisions
-        updateCollisions()
-
         // Effects
         camera.fov = 80f + 20f * Math.min(abs(velocity) / maxSpeed, 1f)
 
@@ -421,9 +440,15 @@ class Scene(private val window: GameWindow) {
         updateWheelSpin(dt)
 
 
+        // Collisions
+        updateCollisions()
+
+        // Void
+        moveVoid(dt)
+
 
         // Map Manager
-        mapManager.currentSegment = (player.getWorldPosition().z/mapManager.SEGMENT_SIZE).toInt()
+        mapManager.currentSegment = (player.getWorldPosition().z/mapManager.SEGMENT_SIZE).toInt()-4
         mapManager.update()
 
     }
@@ -476,6 +501,9 @@ class Scene(private val window: GameWindow) {
         backWheels.dissolveFactor = 0f
         frontLeftWheel.dissolveFactor = 0f
         frontRightWheel.dissolveFactor = 0f
+
+        cameraOffset = Vector3f(0f, 4f, -5f)
+        cameraRotOffset = Vector3f(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
 
 
         mapManager.currentSegment = 0
@@ -533,10 +561,25 @@ class Scene(private val window: GameWindow) {
 
     var cameraAngle = 0.0f
 
+    var cameraOffset = Vector3f(0f, 4f, -5f)
+    var cameraRotOffset = Vector3f(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
+
     private fun updateCamera(dt: Float) {
+        val cameraPos = if (window.getKeyState(GLFW_KEY_E)) {
+            Vector3f(0f, 4f, 5f)
+        } else {
+            Vector3f(0f, 4f, -5f)
+        }
+        val cameraRot = if (window.getKeyState(GLFW_KEY_E)) {
+            Vector3f(-.9f, 0f, 0f)
+        } else {
+            Vector3f(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
+        }
+        cameraOffset = cameraOffset.lerp(cameraPos, dt*4)
+        cameraRotOffset = cameraRotOffset.lerp(cameraRot, dt*8)
         cameraAngle = lerp(targetRotation*.1f, cameraAngle, dt)
-        camera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
-        camera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
+        camera.setRotation(cameraRotOffset.x, cameraRotOffset.y, cameraRotOffset.z)
+        camera.setPosition(player.getWorldPosition().add(cameraOffset))
         uiScore.setRotation(0f, 0f, -cameraAngle)
         uiScore.scale(Vector3f(.1f*camera.fov/60f))
         val lowFovPos = Vector3f(.15f, 4.13f, -4f)
@@ -570,6 +613,8 @@ class Scene(private val window: GameWindow) {
     private fun gameOver() {
         shouldDissolve = true
         gameState = GS_GAMEOVER
+        camera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
+        camera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
     }
 
     private fun getScore(): Int {
@@ -590,6 +635,10 @@ class Scene(private val window: GameWindow) {
             9 -> ui9
             else -> ui0
         }
+    }
+
+    private fun moveVoid(dt: Float) {
+        void.translate(Vector3f(0f, 0f, dt*voidSpeed))
     }
 
     private fun updateCameraOrbit() {
