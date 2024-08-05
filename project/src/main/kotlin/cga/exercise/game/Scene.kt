@@ -224,6 +224,7 @@ class Scene(private val window: GameWindow) {
             frontRightWheel = frontRightWheelModel
 
             player.rotate(0.0f, Math.toRadians(180.0).toFloat(), 0.0f)
+            for (light in lightManager.spotLights) light.rotate(0.0f,Math.toRadians(180.0).toFloat(),0.0f)
 
             // Debug
             cubeModel!!.scale(Vector3f(.1f, 1f, .1f))
@@ -249,11 +250,12 @@ class Scene(private val window: GameWindow) {
         }
 
         // Add Headlights
-        leftHeadlight = SpotLight(Vector3f(-.6f, 0.1f, -2.5f), Vector3f(0f, -0.3f, 1f), Vector3f(1f), 10f, 20f)
-        rightHeadlight = SpotLight(Vector3f(.6f, 0.1f, -2.5f), Vector3f(0f, -0.3f, 1f), Vector3f(1f), 10f, 20f)
+        leftHeadlight = SpotLight(Vector3f(-.6f, 0.7f, -2.5f), Vector3f(3f, 0.0f, 0f), Vector3f(1f), 10f, 60f)
+        rightHeadlight = SpotLight(Vector3f(.6f, 0.7f, -2.5f), Vector3f(3f, 0f, 0f), Vector3f(1f), 10f, 20f)
 
         lightManager.addSpotLight(leftHeadlight)
         lightManager.addSpotLight(rightHeadlight)
+
 
         leftHeadlight.parent = player
         rightHeadlight.parent = player
