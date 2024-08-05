@@ -67,6 +67,9 @@ class Scene(private val window: GameWindow) {
 
     val HIGHWAY_DIVIDER = 5.8f
 
+    private lateinit var void: Renderable
+    private var voidSpeed = 30f
+
 
     // UI
     val CAMERA_HOLDER_START_POS = Vector3f(2.4f, 2f, -.2f)
@@ -174,6 +177,13 @@ class Scene(private val window: GameWindow) {
             ModelLoader.loadModel("assets/Car/FLWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
         val frontRightWheelModel =
             ModelLoader.loadModel("assets/Car/FRWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
+
+        val voidModel = ModelLoader.loadModel("assets/Environment/Void.obj", 0f, 0f, 0f)
+
+        void = voidModel!!
+        void.translate(Vector3f(0f, 0f, -100f))
+        void.scale(Vector3f(10f, 1f, 1f))
+        renderables.add(void)
 
         val testCube = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
         
@@ -422,6 +432,9 @@ class Scene(private val window: GameWindow) {
         // Collisions
         updateCollisions()
 
+        // Void
+        moveVoid(dt)
+
 
         // Map Manager
         mapManager.currentSegment = (player.getWorldPosition().z/mapManager.SEGMENT_SIZE).toInt()-4
@@ -611,6 +624,10 @@ class Scene(private val window: GameWindow) {
             9 -> ui9
             else -> ui0
         }
+    }
+
+    private fun moveVoid(dt: Float) {
+        void.translate(Vector3f(0f, 0f, dt*voidSpeed))
     }
 
     private fun updateCameraOrbit() {
