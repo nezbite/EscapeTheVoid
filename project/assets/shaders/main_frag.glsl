@@ -90,45 +90,38 @@ vec3 calculateBlinnPhongSpotLight(
     vec3 lightColor,
     float innerCutOff,
     float outerCutOff,
-    float material_shininess
+    float material_shininess,
+    float constant,
+    float linear,
+    float quadratic
 ) {
     float distance = length(toLight);
-    // Normalize the vectors
     vec3 lightDirection = normalize(toLight);
     vec3 normalizedLightDir = normalize(lightDir);
     vec3 normalizedNormal = normalize(normal);
 
-    // Calculate the angle between the light direction and the light's normalized direction
     float theta = dot(lightDirection, normalizedLightDir);
 
-    // Check if the fragment is within the spotlight cone
-    if (theta < cos(innerCutOff)) {
-        return vec3(0.0); // Outside of inner cone, no light
-    } else if (theta > cos(outerCutOff)) {
-        return lightColor * fragColor; // Full intensity within inner cone
-    }
-
-    // Calculate spotlight intensity using smoothstep for a softer transition
     float epsilon = outerCutOff - innerCutOff;
     float intensity = smoothstep(cos(outerCutOff), cos(innerCutOff), theta);
 
-    // Calculate attenuation based on distance
-    float attenuation = 1.0 / (distance * distance + 0.01); // Adjusted to avoid division by zero
+    if (intensity == 0.0) {
+        return vec3(0.0);
+    }
 
-    // Ambient component
-    vec3 ambient = 0.1 * fragColor; // Or lightColor if you prefer
+    float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+    intensity *= attenuation;
 
-    // Diffuse component
+    vec3 ambient = 0.1 * fragColor;
+
     float diff = max(dot(normalizedNormal, lightDirection), 0.0);
-    vec3 diffuse = diff * lightColor * fragColor * attenuation * intensity;
+    vec3 diffuse = diff * lightColor * fragColor * intensity;
 
-    // Specular component
     vec3 viewDir = normalize(toCamera);
     vec3 halfDir = normalize(lightDirection + viewDir);
     float spec = pow(max(dot(normalizedNormal, halfDir), 0.0), material_shininess);
-    vec3 specular = spec * lightColor * attenuation * intensity;
+    vec3 specular = spec * lightColor * intensity;
 
-    // Combine the components
     return ambient + diffuse + specular;
 }
 
@@ -164,7 +157,7 @@ void main() {
     // Berechnung der Spot Light Beleuchtung
     vec3 spotLighting = vec3(0.0);
     for (int j = 0; j < numSpotLights; j++) {
-        spotLighting += calculateBlinnPhongSpotLight(fragColor, normalizedNormal, vertexData.toCameraVector, vertexData.toSpotLightVector[j], vertexData.spotLightDirections[j], spotLightColors[j], spotLightInnerCutOffs[j], spotLightOuterCutOffs[j],material_shininess);
+        spotLighting += calculateBlinnPhongSpotLight(fragColor, normalizedNormal, vertexData.toCameraVector, vertexData.toSpotLightVector[j], vertexData.spotLightDirections[j], spotLightColors[j], spotLightInnerCutOffs[j], spotLightOuterCutOffs[j],material_shininess, 1, 0.09, 0.032);
     }
 
     // Berechnung der Point Light Beleuchtung

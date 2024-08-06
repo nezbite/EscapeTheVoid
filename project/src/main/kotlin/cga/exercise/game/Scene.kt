@@ -250,8 +250,8 @@ class Scene(private val window: GameWindow) {
         }
 
         // Add Headlights
-        leftHeadlight = SpotLight(Vector3f(-.6f, 0.7f, -2.5f), Vector3f(3f, 0.0f, 0f), Vector3f(1f), 10f, 60f)
-        rightHeadlight = SpotLight(Vector3f(.6f, 0.7f, -2.5f), Vector3f(3f, 0f, 0f), Vector3f(1f), 10f, 20f)
+        leftHeadlight = SpotLight(Vector3f(-.6f, 0.7f, -1.2f), Vector3f(0f, .3f, 0f), Vector3f(1f), 1f, 22f)
+        rightHeadlight = SpotLight(Vector3f(.6f, 0.7f, -1.2f), Vector3f(0f, .3f, 0f), Vector3f(1f), 1f, 22f)
 
         lightManager.addSpotLight(leftHeadlight)
         lightManager.addSpotLight(rightHeadlight)
