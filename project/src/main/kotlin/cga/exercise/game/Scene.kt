@@ -1,5 +1,7 @@
 package cga.exercise.game
 
+import cga.exercise.components.blur.BlurEffect
+import cga.exercise.components.blur.Framebuffer
 import cga.exercise.components.camera.Camera
 import cga.exercise.components.collision.BoxCollider
 import cga.exercise.components.geometry.*
@@ -17,6 +19,8 @@ import cga.framework.ModelLoader
 import org.joml.Math.clamp
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.ARBFramebufferObject.GL_FRAMEBUFFER
+import org.lwjgl.opengl.ARBFramebufferObject.glBindFramebuffer
 import org.lwjgl.opengl.GL20.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -106,9 +110,21 @@ class Scene(private val window: GameWindow) {
     private var renderCollisions = false
     private var debugColliders = mutableListOf<Renderable>()
 
+    // Skybox
     private var skybox: Skybox
     private var skyboxRenderer: SkyboxRenderer
     private var skyboxShaderProgram: ShaderProgram
+
+    // Blur
+    private val framebuffer: Framebuffer
+    private val horizontalFramebuffer: Framebuffer
+    private val verticalFramebuffer: Framebuffer
+    private val blurEffectH: BlurEffect
+    private val blurEffectV: BlurEffect
+    private var horizontalBlurShader: ShaderProgram
+    private var verticalBlurShader: ShaderProgram
+
+
 
     //scene setup
     init {
@@ -118,11 +134,19 @@ class Scene(private val window: GameWindow) {
 //        lightManager.addSpotLight(SpotLight(Vector3f(0.0f,0.5f,0.0f),Vector3f(0.0f,0.0f,1.0f), Vector3f(1.0f,3.0f,1.0f),25.0f,60.0f))
         lightManager.addPointLight(PointLight(Vector3f(3.0f),Vector3f(3.0f,1.0f,1.0f)))
 
-
         // Add Skybox
         skyboxShaderProgram = ShaderProgram("assets/shaders/skybox_vert.glsl","assets/shaders/skybox_frag.glsl")
         skybox = Skybox.createSkybox()
         skyboxRenderer = SkyboxRenderer(skyboxShaderProgram)
+
+        // Add Blur
+        horizontalBlurShader = ShaderProgram("assets/shaders/blur_vert.glsl","assets/shaders/horizontal_blur_frag.glsl")
+        verticalBlurShader = ShaderProgram("assets/shaders/blur_vert.glsl","assets/shaders/vertical_blur_frag.glsl")
+        framebuffer = Framebuffer(window.windowWidth,window.windowHeight)
+        horizontalFramebuffer = Framebuffer(window.windowWidth,window.windowHeight)
+        verticalFramebuffer = Framebuffer(window.windowWidth,window.windowHeight)
+        blurEffectH = BlurEffect(horizontalBlurShader)
+        blurEffectV = BlurEffect(verticalBlurShader)
 
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
@@ -286,6 +310,7 @@ class Scene(private val window: GameWindow) {
     }
 
     fun render(dt: Float, t: Float) {
+        framebuffer.bind()
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
 
@@ -307,9 +332,6 @@ class Scene(private val window: GameWindow) {
 
         // Bind light
         lightManager.bindDirectionalLights(staticShader)
-
-
-
 
         // Render Renderables
         for (renderable in renderables) {
@@ -356,6 +378,28 @@ class Scene(private val window: GameWindow) {
         for (renderable in carRenderables) {
             renderable.render(staticShader)
         }
+
+        framebuffer.unbind()
+
+        horizontalBlurShader.use()
+        glBindTexture(GL_TEXTURE_2D,framebuffer.textureID)
+        horizontalFramebuffer.bind()
+        blurEffectH.bind()
+        blurEffectH.renderFullScreenQuad()
+        horizontalFramebuffer.unbind()
+
+        verticalBlurShader.use()
+        glBindTexture(GL_TEXTURE_2D,horizontalFramebuffer.textureID)
+        verticalFramebuffer.bind()
+        blurEffectV.bind()
+        blurEffectV.renderFullScreenQuad()
+        verticalFramebuffer.unbind()
+
+        framebuffer.cleanup()
+
+        staticShader.use()
+        glBindTexture(GL_TEXTURE_2D,framebuffer.textureID)
+        blurEffectV.renderFullScreenQuad() // Render the fullscreen quad with the blurred texture
 
         /*staticShader.cleanup()
         skyboxShaderProgram.cleanup()*/
