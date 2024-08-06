@@ -2,6 +2,7 @@ package cga.exercise.game
 
 import cga.exercise.components.blur.BlurEffect
 import cga.exercise.components.blur.Framebuffer
+import cga.exercise.components.blur.FullScreenQuad
 import cga.exercise.components.camera.Camera
 import cga.exercise.components.collision.BoxCollider
 import cga.exercise.components.geometry.*
@@ -123,7 +124,8 @@ class Scene(private val window: GameWindow) {
     private val blurEffectV: BlurEffect
     private var horizontalBlurShader: ShaderProgram
     private var verticalBlurShader: ShaderProgram
-
+    private var textureShader: ShaderProgram
+    private var fullScreenQuad: FullScreenQuad
 
 
     //scene setup
@@ -145,8 +147,10 @@ class Scene(private val window: GameWindow) {
         framebuffer = Framebuffer(window.windowWidth,window.windowHeight)
         horizontalFramebuffer = Framebuffer(window.windowWidth,window.windowHeight)
         verticalFramebuffer = Framebuffer(window.windowWidth,window.windowHeight)
-        blurEffectH = BlurEffect(horizontalBlurShader)
-        blurEffectV = BlurEffect(verticalBlurShader)
+        textureShader = ShaderProgram("assets/shaders/simple_texture_vert.glsl","assets/shaders/simple_texture_frag.glsl")
+        fullScreenQuad = FullScreenQuad()
+        blurEffectH = BlurEffect(horizontalBlurShader,fullScreenQuad)
+        blurEffectV = BlurEffect(verticalBlurShader,fullScreenQuad)
 
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
@@ -310,9 +314,11 @@ class Scene(private val window: GameWindow) {
     }
 
     fun render(dt: Float, t: Float) {
-        framebuffer.bind()
-        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+        framebuffer.bind() // POST PROCESSING FRAMEBUFFER
 
+        // -> Szene
+
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
 
         glDepthFunc(GL_LEQUAL)
@@ -379,30 +385,53 @@ class Scene(private val window: GameWindow) {
             renderable.render(staticShader)
         }
 
-        framebuffer.unbind()
+        // <- Szene zuende
+
+        framebuffer.unbind() // Ende vom Framebuffer für die Szene
+
+
+        // -> Post processing anhand des ersten szenen frambuffers
+
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
+        horizontalFramebuffer.bind() // weiterer framebuffer zum tracken des nächsten postprocessing schritts
+
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         horizontalBlurShader.use()
+        glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D,framebuffer.textureID)
-        horizontalFramebuffer.bind()
+        horizontalBlurShader.setUniform("screenTexture", 0)
         blurEffectH.bind()
-        blurEffectH.renderFullScreenQuad()
-        horizontalFramebuffer.unbind()
+        fullScreenQuad.render()
+
+        horizontalFramebuffer.unbind() // ende des framebuffer
+
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
+        verticalFramebuffer.bind() // weiterer framebuffer
+
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         verticalBlurShader.use()
+        glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D,horizontalFramebuffer.textureID)
-        verticalFramebuffer.bind()
+        verticalBlurShader.setUniform("screenTexture", 0)
         blurEffectV.bind()
-        blurEffectV.renderFullScreenQuad()
-        verticalFramebuffer.unbind()
+        fullScreenQuad.render()
 
-        framebuffer.cleanup()
+        verticalFramebuffer.unbind() // ende framebuffer
 
-        staticShader.use()
-        glBindTexture(GL_TEXTURE_2D,framebuffer.textureID)
-        blurEffectV.renderFullScreenQuad() // Render the fullscreen quad with the blurred texture
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        /*staticShader.cleanup()
-        skyboxShaderProgram.cleanup()*/
+        // Rendern der finalen FrameTextur nach allen Postprocessing Schritten
+
+        textureShader.use()
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D,verticalFramebuffer.textureID)
+        textureShader.setUniform("screenTexture",0)
+        fullScreenQuad.render() // Render the fullscreen quad with the blurred texture
+
     }
 
 
