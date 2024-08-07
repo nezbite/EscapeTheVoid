@@ -20,8 +20,6 @@ import cga.framework.ModelLoader
 import org.joml.Math.clamp
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.opengl.ARBFramebufferObject.GL_FRAMEBUFFER
-import org.lwjgl.opengl.ARBFramebufferObject.glBindFramebuffer
 import org.lwjgl.opengl.GL20.*
 import kotlin.math.abs
 import kotlin.random.Random
