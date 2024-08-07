@@ -1,5 +1,7 @@
 #version 330 core
 
+const int MAX_LIGHTS = 4;
+
 // Eingang vom Vertex-Shader
 in struct VertexData {
     vec3 color;
@@ -7,8 +9,9 @@ in struct VertexData {
     vec2 texCoord; // Texturkoordinaten
     vec3 fragPosition; // Fragmentsposition im Viewspace
     vec3 toCameraVector; // Vektor zum Kameraposition im Viewspace
-    vec3 toPointLightVector[10]; // Vektor zum Point-Light im Viewspace
-    vec3 toSpotLightVector[10]; // Vektor zum Spot-Light im Viewspace
+    vec3 toPointLightVector[MAX_LIGHTS]; // Vektor zum Point-Light im Viewspace
+    vec3 toSpotLightVector[MAX_LIGHTS]; // Vektor zum Spot-Light im Viewspace
+    vec3 spotLightDirections[MAX_LIGHTS];
 } vertexData;
 
 // Uniforms für Texturen
@@ -19,22 +22,21 @@ uniform float material_shininess;
 
 // Uniforms für Point Light
 uniform int numPointLights;
-uniform vec3 pointLightPositions[10];
-uniform vec3 pointLightColors[10];
+uniform vec3 pointLightPositions[MAX_LIGHTS];
+uniform vec3 pointLightColors[MAX_LIGHTS];
 
 // Uniforms für Spot Light
 uniform int numSpotLights;
-uniform vec3 spotLightPositions[10];
-uniform vec3 spotLightDirections[10];
-uniform vec3 spotLightColors[10];
-uniform float spotLightInnerCutOffs[10];
-uniform float spotLightOuterCutOffs[10];
+uniform vec3 spotLightPositions[MAX_LIGHTS];
+uniform vec3 spotLightColors[MAX_LIGHTS];
+uniform float spotLightInnerCutOffs[MAX_LIGHTS];
+uniform float spotLightOuterCutOffs[MAX_LIGHTS];
 
 // Uniforms für Directional Lights
 uniform int numDirLights;
-uniform vec3 dirLightDirections[10];
-uniform vec3 dirLightColors[10];
-uniform float dirLightIntensities[10];
+uniform vec3 dirLightDirections[MAX_LIGHTS];
+uniform vec3 dirLightColors[MAX_LIGHTS];
+uniform float dirLightIntensities[MAX_LIGHTS];
 
 // Gamma-Korrektur Parameter
 uniform float gamma = 2.2;
@@ -88,45 +90,38 @@ vec3 calculateBlinnPhongSpotLight(
     vec3 lightColor,
     float innerCutOff,
     float outerCutOff,
-    float material_shininess
+    float material_shininess,
+    float constant,
+    float linear,
+    float quadratic
 ) {
     float distance = length(toLight);
-    // Normalize the vectors
     vec3 lightDirection = normalize(toLight);
     vec3 normalizedLightDir = normalize(lightDir);
     vec3 normalizedNormal = normalize(normal);
 
-    // Calculate the angle between the light direction and the light's normalized direction
     float theta = dot(lightDirection, normalizedLightDir);
 
-    // Check if the fragment is within the spotlight cone
-    if (theta < cos(innerCutOff)) {
-        return vec3(0.0); // Outside of inner cone, no light
-    } else if (theta > cos(outerCutOff)) {
-        return lightColor * fragColor; // Full intensity within inner cone
-    }
-
-    // Calculate spotlight intensity using smoothstep for a softer transition
     float epsilon = outerCutOff - innerCutOff;
     float intensity = smoothstep(cos(outerCutOff), cos(innerCutOff), theta);
 
-    // Calculate attenuation based on distance
-    float attenuation = 1.0 / (distance * distance + 0.01); // Adjusted to avoid division by zero
+    if (intensity == 0.0) {
+        return vec3(0.0);
+    }
 
-    // Ambient component
-    vec3 ambient = 0.1 * fragColor; // Or lightColor if you prefer
+    float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+    intensity *= attenuation;
 
-    // Diffuse component
+    vec3 ambient = 0.1 * fragColor;
+
     float diff = max(dot(normalizedNormal, lightDirection), 0.0);
-    vec3 diffuse = diff * lightColor * fragColor * attenuation * intensity;
+    vec3 diffuse = diff * lightColor * fragColor * intensity;
 
-    // Specular component
     vec3 viewDir = normalize(toCamera);
     vec3 halfDir = normalize(lightDirection + viewDir);
     float spec = pow(max(dot(normalizedNormal, halfDir), 0.0), material_shininess);
-    vec3 specular = spec * lightColor * attenuation * intensity;
+    vec3 specular = spec * lightColor * intensity;
 
-    // Combine the components
     return ambient + diffuse + specular;
 }
 
@@ -162,7 +157,7 @@ void main() {
     // Berechnung der Spot Light Beleuchtung
     vec3 spotLighting = vec3(0.0);
     for (int j = 0; j < numSpotLights; j++) {
-        spotLighting += calculateBlinnPhongSpotLight(fragColor, normalizedNormal, vertexData.toCameraVector, vertexData.toSpotLightVector[j], spotLightDirections[j], spotLightColors[j], spotLightInnerCutOffs[j], spotLightOuterCutOffs[j],material_shininess);
+        spotLighting += calculateBlinnPhongSpotLight(fragColor, normalizedNormal, vertexData.toCameraVector, vertexData.toSpotLightVector[j], vertexData.spotLightDirections[j], spotLightColors[j], spotLightInnerCutOffs[j], spotLightOuterCutOffs[j],material_shininess, 1, 0.09, 0.032);
     }
 
     // Berechnung der Point Light Beleuchtung

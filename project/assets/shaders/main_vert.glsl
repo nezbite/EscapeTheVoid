@@ -11,6 +11,8 @@ uniform mat4 view_matrix;
 uniform mat4 proj_matrix;
 uniform vec2 tcMultiplier; // Texturkoordinaten-Multiplikator
 
+const int MAX_LIGHTS = 4;
+
 // Ausgabe-Datenstruktur
 out struct VertexData
 {
@@ -19,8 +21,9 @@ out struct VertexData
     vec2 texCoord; // Texturkoordinaten
     vec3 fragPosition; // Fragmentsposition im Viewspace
     vec3 toCameraVector; // Vektor zum Kameraposition im Viewspace
-    vec3 toPointLightVector[10]; // Vektoren zu Point Lights im Viewspace
-    vec3 toSpotLightVector[10]; // Vektoren zu Spot Lights im Viewspace
+    vec3 toPointLightVector[MAX_LIGHTS]; // Vektoren zu Point Lights im Viewspace
+    vec3 toSpotLightVector[MAX_LIGHTS]; // Vektoren zu Spot Lights im Viewspace
+    vec3 spotLightDirections[MAX_LIGHTS];
 } vertexData;
 
 // Anzahl der Point Lights und Spot Lights
@@ -28,12 +31,12 @@ uniform int numPointLights;
 uniform int numSpotLights;
 
 // Uniforms für Point Lights
-uniform vec3 pointLightPositions[10]; // Positionen der Point Lights
-uniform vec3 pointLightColors[10]; // Farben der Point Lights
+uniform vec3 pointLightPositions[MAX_LIGHTS]; // Positionen der Point Lights
+uniform vec3 pointLightColors[MAX_LIGHTS]; // Farben der Point Lights
 
 // Uniforms für Spot Lights
-uniform vec3 spotLightPositions[10]; // Positionen der Spot Lights
-uniform vec3 spotLightDirections[10]; // Richtungen der Spot Lights
+uniform vec3 spotLightPositions[MAX_LIGHTS]; // Positionen der Spot Lights
+uniform vec3 spotLightDirections[MAX_LIGHTS]; // Richtungen der Spot Lights
 
 void main() {
     // Umwandlung in homogene Koordinaten
@@ -59,6 +62,7 @@ void main() {
     // Vektor zum Spot Light im Viewspace berechnen
     for (int j = 0; j < numSpotLights; j++) {
         vertexData.toSpotLightVector[j] = (view_matrix * vec4(spotLightPositions[j], 1.0)).xyz - vertexData.fragPosition;
+        vertexData.spotLightDirections[j] = mat3(view_matrix) * spotLightDirections[j];
     }
 
     // Vektor zum Kameraposition im Viewspace berechnen
