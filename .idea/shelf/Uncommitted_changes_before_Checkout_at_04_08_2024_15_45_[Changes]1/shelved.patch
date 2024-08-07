@@ -1,0 +1,208 @@
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+new file mode 100644
+--- /dev/null	
++++ b/.idea/vcs.xml	
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/gradle.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/gradle.xml b/.idea/gradle.xml
+new file mode 100644
+--- /dev/null	
++++ b/.idea/gradle.xml	
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="GradleMigrationSettings" migrationVersion="1" />
++  <component name="GradleSettings">
++    <option name="linkedExternalProjectsSettings">
++      <GradleProjectSettings>
++        <option name="externalProjectPath" value="$PROJECT_DIR$/project" />
++        <option name="gradleJvm" value="corretto-20" />
++        <option name="modules">
++          <set>
++            <option value="$PROJECT_DIR$/project" />
++          </set>
++        </option>
++      </GradleProjectSettings>
++    </option>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/jarRepositories.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/jarRepositories.xml b/.idea/jarRepositories.xml
+new file mode 100644
+--- /dev/null	
++++ b/.idea/jarRepositories.xml	
+@@ -0,0 +1,20 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="RemoteRepositoriesConfiguration">
++    <remote-repository>
++      <option name="id" value="central" />
++      <option name="name" value="Maven Central repository" />
++      <option name="url" value="https://repo1.maven.org/maven2" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="jboss.community" />
++      <option name="name" value="JBoss Community repository" />
++      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="MavenRepo" />
++      <option name="name" value="MavenRepo" />
++      <option name="url" value="https://repo.maven.apache.org/maven2/" />
++    </remote-repository>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/kotlinc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/kotlinc.xml b/.idea/kotlinc.xml
+new file mode 100644
+--- /dev/null	
++++ b/.idea/kotlinc.xml	
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="KotlinJpsPluginSettings">
++    <option name="version" value="1.9.20" />
++  </component>
++</project>
+\ No newline at end of file
+Index: project/src/main/kotlin/cga/exercise/components/light/IDirLight.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/project/src/main/kotlin/cga/exercise/components/light/IDirLight.kt b/project/src/main/kotlin/cga/exercise/components/light/IDirLight.kt
+new file mode 100644
+--- /dev/null	
++++ b/project/src/main/kotlin/cga/exercise/components/light/IDirLight.kt	
+@@ -0,0 +1,7 @@
++package cga.exercise.components.light
++
++import cga.exercise.components.shader.ShaderProgram
++
++interface IDirLight {
++    fun bind(shaderProgram: ShaderProgram, name: String)
++}
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+new file mode 100644
+--- /dev/null	
++++ b/.idea/misc.xml	
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ExternalStorageConfigurationManager" enabled="true" />
++  <component name="FrameworkDetectionExcludesConfiguration">
++    <file type="web" url="file://$PROJECT_DIR$/project" />
++  </component>
++  <component name="ProjectRootManager">
++    <output url="file://$PROJECT_DIR$/out" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/modules.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/modules.xml b/.idea/modules.xml
+new file mode 100644
+--- /dev/null	
++++ b/.idea/modules.xml	
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectModuleManager">
++    <modules>
++      <module fileurl="file://$PROJECT_DIR$/.idea/EscapeTheVoid.iml" filepath="$PROJECT_DIR$/.idea/EscapeTheVoid.iml" />
++    </modules>
++  </component>
++</project>
+\ No newline at end of file
+Index: project/src/main/kotlin/cga/exercise/components/map/MapManager.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package cga.exercise.components.map\r\n\r\nimport cga.exercise.components.geometry.Renderable\r\nimport org.joml.Vector3f\r\nimport kotlin.random.Random\r\n\r\n/**\r\n * Class for managing the infinitely generated map\r\n */\r\nclass MapManager {\r\n    val MAP_SIZE = 100\r\n    val SEGMENT_SIZE = 3*6\r\n    var segments: Array<MapSegment> = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }\r\n    var segmentIds = mutableListOf<Int>()\r\n    var random = Random(1)\r\n\r\n    var currentSegment = 0 // Current segment the player is on\r\n    var mapSegment = 0 // Current starting segment of the map\r\n\r\n    var roadModels = mutableListOf<Renderable>()\r\n\r\n    fun init() {\r\n        segmentIds.add(3)\r\n        for (i in 1 .. segments.size) {\r\n            segmentIds.add(getNextMapSegment(segmentIds.last()))\r\n        }\r\n        setSegments()\r\n    }\r\n\r\n\r\n    fun update() {\r\n        if (mapSegment != currentSegment) {\r\n            mapSegment = currentSegment\r\n            if (segmentIds.size < currentSegment + MAP_SIZE) {\r\n                for (i in segmentIds.size .. currentSegment + MAP_SIZE-1) {\r\n                    segmentIds.add(getNextMapSegment(segmentIds.last()))\r\n                }\r\n            }\r\n            setSegments()\r\n        }\r\n    }\r\n\r\n    fun setSegments() {\r\n        segments = Array(segments.size) { MapSegment(Renderable(mutableListOf())) }\r\n        for (i in 0 .. segments.size-1) {\r\n            if (currentSegment < 0) {\r\n                currentSegment = 0\r\n            }\r\n            val segment = MapSegment(roadModels[segmentIds[currentSegment+i]].copy())\r\n            segment.position = currentSegment+i-2\r\n            segment.renderable.setPosition(Vector3f(0f, 0f, segment.position*SEGMENT_SIZE.toFloat()))\r\n            segments[i] = segment\r\n        }\r\n    }\r\n\r\n    val M_TUNNEL_ENTRY = 0\r\n    val M_TUNNEL = 1\r\n    val M_ROAD1 = 2\r\n    val M_ROAD2 = 3\r\n    val M_ROAD3 = 4\r\n\r\n    val segmentInfos: Map<Int, MapSegmentInfo> = mapOf(\r\n        M_TUNNEL_ENTRY to MapSegmentInfo(M_TUNNEL_ENTRY, 1, mutableListOf(M_TUNNEL)),\r\n        M_TUNNEL to MapSegmentInfo(M_TUNNEL, 100, mutableListOf(M_TUNNEL, M_ROAD1)),\r\n        M_ROAD1 to MapSegmentInfo(M_ROAD1, 10, mutableListOf(M_ROAD1, M_ROAD2)),\r\n        M_ROAD2 to MapSegmentInfo(M_ROAD2, 10, mutableListOf(M_ROAD1, M_ROAD2, M_ROAD3)),\r\n        M_ROAD3 to MapSegmentInfo(M_ROAD3, 5, mutableListOf(M_ROAD3, M_TUNNEL_ENTRY))\r\n    )\r\n\r\n    fun getNextMapSegment(last: Int): Int {\r\n        println(last)\r\n        val info = segmentInfos[last]!!\r\n        val followers = mutableListOf<MapSegmentInfo>()\r\n        for (follower in info.possibleFollowers) {\r\n            for (i in 0..segmentInfos[follower]!!.probability) {\r\n                followers.add(segmentInfos[follower]!!)\r\n            }\r\n        }\r\n        return followers[random.nextInt(followers.size)].id\r\n    }\r\n}\r\n\r\nclass MapSegmentInfo(val id: Int, val probability: Int, val possibleFollowers: MutableList<Int>)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/project/src/main/kotlin/cga/exercise/components/map/MapManager.kt b/project/src/main/kotlin/cga/exercise/components/map/MapManager.kt
+--- a/project/src/main/kotlin/cga/exercise/components/map/MapManager.kt	
++++ b/project/src/main/kotlin/cga/exercise/components/map/MapManager.kt	
+@@ -8,7 +8,7 @@
+  * Class for managing the infinitely generated map
+  */
+ class MapManager {
+-    val MAP_SIZE = 100
++    val MAP_SIZE = 20
+     val SEGMENT_SIZE = 3*6
+     var segments: Array<MapSegment> = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
+     var segmentIds = mutableListOf<Int>()
+Index: .idea/EscapeTheVoid.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/EscapeTheVoid.iml b/.idea/EscapeTheVoid.iml
+new file mode 100644
+--- /dev/null	
++++ b/.idea/EscapeTheVoid.iml	
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<module type="JAVA_MODULE" version="4">
++  <component name="NewModuleRootManager" inherit-compiler-output="true">
++    <exclude-output />
++    <content url="file://$MODULE_DIR$" />
++    <orderEntry type="inheritedJdk" />
++    <orderEntry type="sourceFolder" forTests="false" />
++  </component>
++</module>
+\ No newline at end of file
+Index: .idea/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+new file mode 100644
+--- /dev/null	
++++ b/.idea/.gitignore	
+@@ -0,0 +1,8 @@
++# Default ignored files
++/shelf/
++/workspace.xml
++# Editor-based HTTP Client requests
++/httpRequests/
++# Datasource local storage ignored files
++/dataSources/
++/dataSources.local.xml

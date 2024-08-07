@@ -1,0 +1,16 @@
+Index: project/assets/shaders/skybox_vert.glsl
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>#version 330 core\r\n\r\nlayout(location = 0) in vec3 aPos;\r\n\r\nuniform mat4 projection;\r\nuniform mat4 view;\r\n\r\nout vec3 TexCoords;\r\n\r\nvoid main()\r\n{\r\n    TexCoords = aPos;  // Using the vertex position for texture coordinates\r\n\r\n    // Remove translation from view matrix\r\n    mat4 viewNoTranslation = mat4(mat3(view)); // This effectively removes the translation from the view matrix\r\n\r\n    // Scale the position\r\n    float scale = 100.0; // Adjust this value to scale the skybox to the desired size\r\n    gl_Position = projection * viewNoTranslation * vec4(aPos * scale, 1.0);\r\n}\r\n
+===================================================================
+diff --git a/project/assets/shaders/skybox_vert.glsl b/project/assets/shaders/skybox_vert.glsl
+--- a/project/assets/shaders/skybox_vert.glsl	
++++ b/project/assets/shaders/skybox_vert.glsl	
+@@ -15,6 +15,6 @@
+     mat4 viewNoTranslation = mat4(mat3(view)); // This effectively removes the translation from the view matrix
+ 
+     // Scale the position
+-    float scale = 100.0; // Adjust this value to scale the skybox to the desired size
++    float scale = 500.0; // Adjust this value to scale the skybox to the desired size - max = 500.0
+     gl_Position = projection * viewNoTranslation * vec4(aPos * scale, 1.0);
+ }
