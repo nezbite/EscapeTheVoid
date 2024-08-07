@@ -24,8 +24,8 @@ import org.lwjgl.opengl.ARBFramebufferObject.GL_FRAMEBUFFER
 import org.lwjgl.opengl.ARBFramebufferObject.glBindFramebuffer
 import org.lwjgl.opengl.GL20.*
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.random.Random
+
 
 class Scene(private val window: GameWindow) {
     private val staticShader: ShaderProgram = ShaderProgram("assets/shaders/main_vert.glsl", "assets/shaders/main_frag.glsl")
@@ -646,6 +646,7 @@ class Scene(private val window: GameWindow) {
                 targetRotation = -3f
             } else {
                 velocity = -velocity * .8f
+                camera.startScreenShake(0.5f,0.5f)
                 gameOver()
             }
         }
