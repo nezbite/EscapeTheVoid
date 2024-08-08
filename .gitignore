@@ -30,3 +30,8 @@ build
 *.zip
 *.tar.gz
 *.rar
+
+
+## Virtual Machine Files
+project/build/
+project/.gradle/
