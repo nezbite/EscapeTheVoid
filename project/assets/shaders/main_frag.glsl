@@ -49,6 +49,9 @@ uniform sampler2D noiseTexture;
 uniform float dissolveFactor;
 uniform float time;
 
+// Toon shading parameters
+uniform int toonLevels = 20; // Number of discrete color levels
+
 // Ausgabe des Fragment-Shaders
 out vec4 FragColor;
 
@@ -61,27 +64,23 @@ vec3 toGamma(vec3 color) {
     return pow(color, vec3(1.0 / gamma));
 }
 
-vec3 calculateBlinnPhongPointLight(vec3 fragColor, vec3 normal, vec3 toCamera, vec3 toLight, vec3 lightColor) {
+vec3 calculateToonShading(vec3 color, vec3 lightColor, float intensity) {
+    float toonIntensity = floor(intensity * toonLevels) / toonLevels;
+    return color * lightColor * toonIntensity;
+}
+
+vec3 calculateToonPointLight(vec3 fragColor, vec3 normal, vec3 toCamera, vec3 toLight, vec3 lightColor) {
     float distance = length(toLight);
     float attenuation = 1.0 / (distance * distance + 0.01);
 
-    vec3 ambient = 0.01 * lightColor; // Ambient lighting
-
-    // Diffuse lighting
     vec3 lightDir = normalize(toLight);
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor * fragColor * attenuation;
+    vec3 diffuse = calculateToonShading(fragColor, lightColor, diff) * attenuation;
 
-    // Specular lighting
-    vec3 viewDir = normalize(toCamera);
-    vec3 halfDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfDir), 0.0), material_shininess);
-    vec3 specular = spec * lightColor * attenuation;
-
-    return ambient + diffuse + specular;
+    return diffuse;
 }
 
-vec3 calculateBlinnPhongSpotLight(
+vec3 calculateToonSpotLight(
     vec3 fragColor,
     vec3 normal,
     vec3 toCamera,
@@ -90,7 +89,6 @@ vec3 calculateBlinnPhongSpotLight(
     vec3 lightColor,
     float innerCutOff,
     float outerCutOff,
-    float material_shininess,
     float constant,
     float linear,
     float quadratic
@@ -112,33 +110,17 @@ vec3 calculateBlinnPhongSpotLight(
     float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
     intensity *= attenuation;
 
-    vec3 ambient = 0.1 * fragColor;
-
     float diff = max(dot(normalizedNormal, lightDirection), 0.0);
-    vec3 diffuse = diff * lightColor * fragColor * intensity;
+    vec3 diffuse = calculateToonShading(fragColor, lightColor, diff) * intensity;
 
-    vec3 viewDir = normalize(toCamera);
-    vec3 halfDir = normalize(lightDirection + viewDir);
-    float spec = pow(max(dot(normalizedNormal, halfDir), 0.0), material_shininess);
-    vec3 specular = spec * lightColor * intensity;
-
-    return ambient + diffuse + specular;
+    return diffuse;
 }
 
-
-vec3 calculateBlinnPhongDirectionalLight(vec3 normal, vec3 viewDir, vec3 lightDir, vec3 lightColor, float intensity) {
-    vec3 ambient = 0.1 * lightColor * intensity; // Ambient lighting
-
-    // Diffuse lighting
+vec3 calculateToonDirectionalLight(vec3 normal, vec3 viewDir, vec3 lightDir, vec3 lightColor, float intensity) {
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor * intensity;
+    vec3 diffuse = calculateToonShading(vec3(1.0), lightColor, diff) * intensity;
 
-    // Specular lighting
-    vec3 halfDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfDir), 0.0), material_shininess);
-    vec3 specular = spec * lightColor * intensity;
-
-    return ambient + diffuse + specular;
+    return diffuse;
 }
 
 void main() {
@@ -157,28 +139,27 @@ void main() {
     // Berechnung der Spot Light Beleuchtung
     vec3 spotLighting = vec3(0.0);
     for (int j = 0; j < numSpotLights; j++) {
-        spotLighting += calculateBlinnPhongSpotLight(fragColor, normalizedNormal, vertexData.toCameraVector, vertexData.toSpotLightVector[j], vertexData.spotLightDirections[j], spotLightColors[j], spotLightInnerCutOffs[j], spotLightOuterCutOffs[j],material_shininess, 1, 0.09, 0.032);
+        spotLighting += calculateToonSpotLight(fragColor, normalizedNormal, vertexData.toCameraVector, vertexData.toSpotLightVector[j], vertexData.spotLightDirections[j], spotLightColors[j], spotLightInnerCutOffs[j], spotLightOuterCutOffs[j], .5, 0.02, 0.002);
     }
 
     // Berechnung der Point Light Beleuchtung
     vec3 pointLighting = vec3(0.0);
     for (int i = 0; i < numPointLights; i++) {
-        pointLighting += calculateBlinnPhongPointLight(fragColor, normalizedNormal, vertexData.toCameraVector, vertexData.toPointLightVector[i], pointLightColors[i]);
+        pointLighting += calculateToonPointLight(fragColor, normalizedNormal, vertexData.toCameraVector, vertexData.toPointLightVector[i], pointLightColors[i]);
     }
-
 
     // Berechnung der Directional Light Beleuchtung
     vec3 dirLighting = vec3(0.0);
     for (int k = 0; k < numDirLights; k++) {
         vec3 dirLightDirectionNormalized = normalize(dirLightDirections[k]);
-        dirLighting += calculateBlinnPhongDirectionalLight(normalizedNormal, vertexData.toCameraVector, dirLightDirectionNormalized, dirLightColors[k], dirLightIntensities[k]);
+        dirLighting += calculateToonDirectionalLight(normalizedNormal, vertexData.toCameraVector, dirLightDirectionNormalized, dirLightColors[k], dirLightIntensities[k]);
     }
 
     // Emissive Textur abfragen und in lineare Werte umwandeln
     vec3 emissionColor = toLinear(texture(material_emission, vertexData.texCoord).rgb) * 0.4;
 
     // Finalen Farbwert setzen basierend auf der Phong-Beleuchtung, kombiniert mit Spot-Light- und Directional-Light-Beleuchtung und emissiven Textur
-    vec3 finalColor = clamp(spotLighting + pointLighting + dirLighting + emissionColor,0.0,1.0);
+    vec3 finalColor = clamp(spotLighting + pointLighting + dirLighting + emissionColor, 0.0, 1.0);
 
     // Farb-Overlay nur anwenden, wenn es gesetzt ist
     if (colorOverlay != vec3(0.0)) {
