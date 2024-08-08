@@ -313,13 +313,16 @@ class Scene(private val window: GameWindow) {
 
         // Background
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GLError.checkThrow()
+
     }
 
     fun render(dt: Float, t: Float) {
-        framebuffer.bind() // POST PROCESSING FRAMEBUFFER
+        framebuffer.bind()
 
-        // -> Szene
+        // get framebuffer size
+        val glfwWindow = window
 
+        glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
 
@@ -389,51 +392,48 @@ class Scene(private val window: GameWindow) {
 
         // <- Szene zuende
 
-        framebuffer.unbind() // Ende vom Framebuffer für die Szene
+        framebuffer.unbind()
 
-
-        // -> Post processing anhand des ersten szenen frambuffers
-
+        glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        horizontalFramebuffer.bind() // weiterer framebuffer zum tracken des nächsten postprocessing schritts
-
+        horizontalFramebuffer.bind()
+        glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         horizontalBlurShader.use()
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D,framebuffer.textureID)
+        glBindTexture(GL_TEXTURE_2D, framebuffer.textureID)
         horizontalBlurShader.setUniform("screenTexture", 0)
         blurEffectH.bind()
         fullScreenQuad.render()
 
-        horizontalFramebuffer.unbind() // ende des framebuffer
+        horizontalFramebuffer.unbind()
 
+        glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        verticalFramebuffer.bind() // weiterer framebuffer
-
+        verticalFramebuffer.bind()
+        glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         verticalBlurShader.use()
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D,horizontalFramebuffer.textureID)
+        glBindTexture(GL_TEXTURE_2D, horizontalFramebuffer.textureID)
         verticalBlurShader.setUniform("screenTexture", 0)
         blurEffectV.bind()
         fullScreenQuad.render()
 
-        verticalFramebuffer.unbind() // ende framebuffer
+        verticalFramebuffer.unbind()
 
+        glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-
-        // Rendern der finalen FrameTextur nach allen Postprocessing Schritten
 
         textureShader.use()
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D,verticalFramebuffer.textureID)
-        textureShader.setUniform("screenTexture",0)
-        fullScreenQuad.render() // Render the fullscreen quad with the blurred texture
-
+        glBindTexture(GL_TEXTURE_2D, verticalFramebuffer.textureID)
+        textureShader.setUniform("screenTexture", 0)
+        fullScreenQuad.render()
     }
 
 

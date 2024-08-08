@@ -110,6 +110,8 @@ abstract class GameWindow(
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE)
 
+        // Fix for framebuffer size on retina displays (macOS)
+        GLFW.glfwWindowHint(GLFW.GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW.GLFW_FALSE)
         m_window = GLFW.glfwCreateWindow(windowWidth, windowHeight, m_title, if (m_fullscreen) GLFW.glfwGetPrimaryMonitor() else 0L, 0)
         check(m_window != 0L) { "GLFW window couldn't be created." }
 
