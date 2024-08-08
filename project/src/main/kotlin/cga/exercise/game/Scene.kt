@@ -214,8 +214,7 @@ class Scene(private val window: GameWindow) {
 
         void = voidModel!!
         void.translate(Vector3f(0f, 0f, -200f))
-        void.scale(Vector3f(10f, 1.5f, 10f))
-        renderables.add(void)
+        void.scale(Vector3f(10f, .8f, 10f))
 
         // Setting up Car and Components
         val carModel =
@@ -436,9 +435,15 @@ class Scene(private val window: GameWindow) {
 
         ui3dShader.use()
         camera.bind(ui3dShader)
+
+
+        void.render(ui3dShader)
+
+        glClear(GL_DEPTH_BUFFER_BIT)
         if (gameState == GS_MENU || gameState == GS_STARTING) {
             uiTitle.render(ui3dShader)
         }
+
 
         renderScore()
     }
@@ -470,6 +475,7 @@ class Scene(private val window: GameWindow) {
     private var acceleratorState = 0.0f; // rollend
 
     private var menuAnimTime = 0f
+    private var voidAnimTime = 0f
 
     fun update(dt: Float, t: Float) {
         updateDebug()
@@ -477,11 +483,15 @@ class Scene(private val window: GameWindow) {
         updateDissolve(dt)
 
         val fieldDistance = player.getWorldPosition().x - FIELD_DIVIDER
+        val baseMaxSpeed = MAX_SPEED + 60f * getScore()/1000f
         if (fieldDistance > FIELD_TRANSITION) {
-            maxSpeed = MAX_SPEED
+            maxSpeed = baseMaxSpeed
         } else {
-            maxSpeed = lerp(MAX_SPEED, MAX_SPEED_GRASS, clamp(0f, 1f,fieldDistance / FIELD_TRANSITION))
+            maxSpeed = lerp(baseMaxSpeed, MAX_SPEED_GRASS, clamp(0f, 1f,fieldDistance / FIELD_TRANSITION))
         }
+
+
+        println(velocity.toDouble())
 
         when (gameState) {
             // Main Menu
@@ -535,6 +545,11 @@ class Scene(private val window: GameWindow) {
                 velocity = velocity * (1 - dt * friction) + (acceleratorState * maxSpeed) * (dt * friction)
                 player.translate(Vector3f(0.0f, 0.0f, -velocity * dt))
                 updateWheelSpin(dt)
+
+                if (voidAnimTime < 1f) {
+                    voidAnimTime += dt
+                    void.translate(Vector3f(0f, 0f, voidSpeed * dt*1.3f * (1f-voidAnimTime)))
+                }
                 return
             }
         }
@@ -634,6 +649,7 @@ class Scene(private val window: GameWindow) {
         camera.setRotation(CAMERA_START_ROT.x, CAMERA_START_ROT.y, CAMERA_START_ROT.z)
         camera.fov = 60f
         menuAnimTime = 0f
+        voidAnimTime = 0f
         gameState = GS_MENU
 
         shouldDissolve = false
@@ -781,7 +797,7 @@ class Scene(private val window: GameWindow) {
         val cameraRot = if (window.getKeyState(GLFW_KEY_E)) {
             Vector3f(-.9f, 0f, 0f)
         } else {
-            Vector3f(.5f, Math.toRadians(180.0).toFloat(), cameraAngle).add(Vector3f(voidDistanceView*.5f, 0f, 0f))
+            Vector3f(.5f, Math.toRadians(180.0).toFloat(), cameraAngle).add(Vector3f(voidDistanceView*.55f, 0f, 0f))
         }
         cameraOffset = cameraOffset.lerp(cameraPos, dt*4)
         cameraRotOffset = cameraRotOffset.lerp(cameraRot, dt*8)
@@ -807,10 +823,11 @@ class Scene(private val window: GameWindow) {
     private fun gameOver() {
         shouldDissolve = true
         gameState = GS_GAMEOVER
-        camera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
-        camera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
+        if (window.getKeyState(GLFW_KEY_E)) {
+            camera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
+            camera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
+        }
         targetRotation = 0f
-
         uiScore.setPosition(Vector3f(-.25f, -.1f, 0f))
     }
 
@@ -838,8 +855,13 @@ class Scene(private val window: GameWindow) {
     }
 
     private fun moveVoid(dt: Float) {
+        voidSpeed = 3f + 3*getScore()/1000f
         void.translate(Vector3f(0f, 0f, dt*voidSpeed))
         voidDistance = player.getWorldPosition().z - void.getWorldPosition().z - 100
+
+        if (voidDistance < 0) {
+            gameOver()
+        }
     }
 
     private fun updateCameraOrbit() {
