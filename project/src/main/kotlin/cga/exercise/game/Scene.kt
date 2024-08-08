@@ -152,6 +152,8 @@ class Scene(private val window: GameWindow) {
         blurEffectH = BlurEffect(horizontalBlurShader,fullScreenQuad)
         blurEffectV = BlurEffect(verticalBlurShader,fullScreenQuad)
 
+        setBlur(0f)
+
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
 
@@ -457,6 +459,8 @@ class Scene(private val window: GameWindow) {
             backWheels.dissolveFactor = dissolveFactor
             frontLeftWheel.dissolveFactor = dissolveFactor
             frontRightWheel.dissolveFactor = dissolveFactor
+
+            setBlur(dissolveFactor)
 
             dissolveFactor += dt/2
         } else {
@@ -772,6 +776,11 @@ class Scene(private val window: GameWindow) {
 
         // Update wheel spin
         backWheels.rotateAroundPoint(-velocity*dt*5, 0.0f, 0.0f, Vector3f(0.0f, 0.35f, 1.32f))
+    }
+
+    private fun setBlur(blurAmount: Float) {
+        blurEffectH.setBlurAmount(blurAmount)
+        blurEffectV.setBlurAmount(blurAmount)
     }
 
 
