@@ -6,15 +6,30 @@ Escape the Void
 - Kaan Kalinkarci
 
 # Featureliste
-Listen Sie hier alle relevanten Features als Liste mit sinnvoller Reihenfolge auf mit Angabe wer das Feature implementiert hat.
-Bei starker Ungleicheit der Features behalten wir uns eine individuelle Notenvergabe vor.
 
-Bspw.
+## Shader
+- Cel-Shading (Daniel & Kaan)
+- Dissolve Shader (Kaan)
 
-- Verschiedene Kameramodelle (Wechsel zwischen orthographischer und perspektivischer Kamera mittels "c") (Berta)
-- Dynamische Kamera (Steuerung mittels Maus und "WASD" auf der Tastatur) (Carola und Armin)
-- Verschiedene Shaderprogramme (Wechsel mittels "s") (Carola)
-- ...
+## Post Processing & Visuelle Effekte
+- Edge Detection (Daniel)
+- Screen Shake (Kaan)
+- Blur (Kaan)
+- Skybox (Kaan)
+
+## Gameplay
+- 3rd Person View (Daniel)
+- Kollisionserkennung (Daniel)
+- Fahrzeuggeschwindigkeit mit Momentum (Daniel)
+- Simulation der Reifenumdrehung (Daniel)
+- Simulation des Fahrwerks
+- Simulation des Getriebes
+- Prozedurale Kartengenerierung (Daniel)
+- UI (Daniel)
 
 # Quellenverzeichnis
-Listen Sie hier ALLE Quellen der genutzten Ressourcen auf.
+## Modelle
+- Autowracks: [Unity AssetStore - Low Poly Post Apocalyptic Village](https://assetstore.unity.com/packages/3d/environments/low-poly-post-apocalyptic-village-260914)
+- Auto des Spielers: [Unity AssetStore - ARCADE: Street Tuned Cars](https://assetstore.unity.com/packages/3d/vehicles/land/arcade-street-tuned-cars-243353)
+- Umgebung: [Unity AssetStore - Low Poly Megapolis](https://assetstore.unity.com/packages/3d/environments/urban/low-poly-megapolis-195499)
+- Skybox: [Unity AssetStore - Fantasy Skybox FREE](https://assetstore.unity.com/packages/2d/textures-materials/sky/fantasy-skybox-free-18353)
