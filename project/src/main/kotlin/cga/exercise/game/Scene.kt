@@ -77,6 +77,7 @@ class Scene(private val window: GameWindow) {
     val HIGHWAY_DIVIDER = 5.8f
     val FIELD_DIVIDER = -6f
     val FIELD_TRANSITION = 1f
+    val RIGHT_LIMIT = 8f
 
     private var void: Renderable
     private var voidSpeed = 3f
@@ -366,6 +367,7 @@ class Scene(private val window: GameWindow) {
         glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
+        // Skybox
         glDepthFunc(GL_LEQUAL)
         glDepthMask(false)
         camera.bind(skyboxShaderProgram)
@@ -373,6 +375,7 @@ class Scene(private val window: GameWindow) {
         glDepthMask(true)
         glDepthFunc(GL_LESS)
 
+        // Draw using Toon Shader
         staticShader.use()
         lightManager.bindPointLights(staticShader)
         lightManager.bindSpotLights(staticShader)
@@ -511,7 +514,7 @@ class Scene(private val window: GameWindow) {
     private var friction = 1.0f
     private var maxSpeed = 50f
     private var MAX_SPEED = 50f
-    private var MAX_SPEED_GRASS = 20f
+    private var MAX_SPEED_GRASS = .1f
     private var targetRotation = 0.0f
 
 
@@ -531,11 +534,14 @@ class Scene(private val window: GameWindow) {
         if (fieldDistance > FIELD_TRANSITION) {
             maxSpeed = baseMaxSpeed
         } else {
-            maxSpeed = lerp(baseMaxSpeed, MAX_SPEED_GRASS, clamp(0f, 1f,fieldDistance / FIELD_TRANSITION))
+            maxSpeed = lerp(MAX_SPEED_GRASS, baseMaxSpeed, clamp(0f, 1f,-fieldDistance / RIGHT_LIMIT))
         }
 
+        if (player.getWorldPosition().x < -10f) {
+            velocity = lerp(0f, velocity, clamp(0f, 1f, -fieldDistance / 800f))
+        }
 
-        println(velocity.toDouble())
+        println(velocity)
 
         when (gameState) {
             // Main Menu

@@ -3,16 +3,16 @@
 in vec2 TexCoord;
 out vec4 FragColor;
 
-uniform sampler2D screenTexture;  // The texture containing the scene
-uniform vec2 texSize;             // The size of the texture
+uniform sampler2D screenTexture;
+uniform vec2 texSize;
 
 // Sobel edge detection parameters
-const float edgeThreshold = 0.3;  // Adjust this value to control edge sensitivity
+const float edgeThreshold = 0.4;
 
 void main()
 {
     // Calculate the texture coordinates for the neighboring pixels
-    vec2 texOffset = 1.0 / texSize;  // Offset to neighboring pixels
+    vec2 texOffset = 0.8 / texSize;
 
     // Sample neighboring pixels
     float topLeft    = texture(screenTexture, TexCoord + vec2(-texOffset.x,  texOffset.y)).r;
@@ -35,10 +35,10 @@ void main()
     // Set color: black for edges, transparent for background
     if (edgeStrength > edgeThreshold)
     {
-        FragColor = vec4(0.0, 0.0, 0.0, 1.0);  // Black edge with full alpha
+        FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Lines
     }
     else
     {
-        FragColor = vec4(1.0, 1.0, 1.0, 0.0);  // Transparent background
+        FragColor = vec4(1.0, 1.0, 1.0, 0.0); // Background
     }
 }
