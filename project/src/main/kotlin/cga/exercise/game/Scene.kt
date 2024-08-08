@@ -29,6 +29,8 @@ import kotlin.random.Random
 
 class Scene(private val window: GameWindow) {
     private val staticShader: ShaderProgram = ShaderProgram("assets/shaders/main_vert.glsl", "assets/shaders/main_frag.glsl")
+    private val uiShader: ShaderProgram = ShaderProgram("assets/shaders/ui_vert.glsl", "assets/shaders/ui_frag.glsl")
+    private val ui3dShader: ShaderProgram = ShaderProgram("assets/shaders/ui3d_vert.glsl", "assets/shaders/ui3d_frag.glsl")
 
     val lightManager = LightManager()
 
@@ -85,6 +87,9 @@ class Scene(private val window: GameWindow) {
     val CAMERA_HOLDER_START_ROT = Vector3f(0f, Math.toRadians(90.0).toFloat(), 0f)
     val CAMERA_HOLDER_END_POS = Vector3f(0f, 4f, -5f)
     val CAMERA_START_ROT = Vector3f(-.5f, 0f, 0f)
+
+    val UI_SCORE_START = Vector3f(-.25f, 1.2f, 0f)
+    val UI_SCORE_PLAY = Vector3f(-.25f, .83f, 0f)
 
     private var uiTitle: Renderable
 
@@ -171,19 +176,16 @@ class Scene(private val window: GameWindow) {
         uiTitle.scale(Vector3f(.4f))
         uiTitle.translate(Vector3f(0f, 3.7f, 3f))
 
-        val uiNumberPitch = -.5f
-        val uiNumberYaw = Math.toRadians(180.0).toFloat()
-        val uiNumberRoll = 0f
-        ui0 = ModelLoader.loadModel("assets/UI/0.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
-        ui1 = ModelLoader.loadModel("assets/UI/1.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
-        ui2 = ModelLoader.loadModel("assets/UI/2.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
-        ui3 = ModelLoader.loadModel("assets/UI/3.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
-        ui4 = ModelLoader.loadModel("assets/UI/4.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
-        ui5 = ModelLoader.loadModel("assets/UI/5.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
-        ui6 = ModelLoader.loadModel("assets/UI/6.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
-        ui7 = ModelLoader.loadModel("assets/UI/7.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
-        ui8 = ModelLoader.loadModel("assets/UI/8.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
-        ui9 = ModelLoader.loadModel("assets/UI/9.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
+        ui0 = ModelLoader.loadModel("assets/UI/0.obj", 0f, 0f, 0f)!!
+        ui1 = ModelLoader.loadModel("assets/UI/1.obj", 0f, 0f, 0f)!!
+        ui2 = ModelLoader.loadModel("assets/UI/2.obj", 0f, 0f, 0f)!!
+        ui3 = ModelLoader.loadModel("assets/UI/3.obj", 0f, 0f, 0f)!!
+        ui4 = ModelLoader.loadModel("assets/UI/4.obj", 0f, 0f, 0f)!!
+        ui5 = ModelLoader.loadModel("assets/UI/5.obj", 0f, 0f, 0f)!!
+        ui6 = ModelLoader.loadModel("assets/UI/6.obj", 0f, 0f, 0f)!!
+        ui7 = ModelLoader.loadModel("assets/UI/7.obj", 0f, 0f, 0f)!!
+        ui8 = ModelLoader.loadModel("assets/UI/8.obj", 0f, 0f, 0f)!!
+        ui9 = ModelLoader.loadModel("assets/UI/9.obj", 0f, 0f, 0f)!!
 
         uiScore = Transformable()
         uiDigit1 = ui0.copy()
@@ -195,15 +197,17 @@ class Scene(private val window: GameWindow) {
         uiDigit2.parent = uiScore
         uiDigit3.parent = uiScore
         uiDigit4.parent = uiScore
-        uiDigit2.translate(Vector3f(-.5f, 0f, 0f))
-        uiDigit3.translate(Vector3f(-1f, 0f, 0f))
-        uiDigit4.translate(Vector3f(-1.5f, 0f, 0f))
+        uiDigit2.translate(Vector3f(.5f, 0f, 0f))
+        uiDigit3.translate(Vector3f(1f, 0f, 0f))
+        uiDigit4.translate(Vector3f(1.5f, 0f, 0f))
 
-        uiScore.scale(Vector3f(.1f))
+        uiScore.setPosition(UI_SCORE_START)
+        uiScore.scale(Vector3f(.25f))
 
 
-        uiGameOver = ModelLoader.loadModel("assets/UI/GameOver.obj", uiNumberPitch, uiNumberYaw, uiNumberRoll)!!
-        uiGameOver.scale(Vector3f(.2f))
+        uiGameOver = ModelLoader.loadModel("assets/UI/GameOver.obj", 0f, 0f, 0f)!!
+        uiGameOver.scale(Vector3f(.4f))
+        uiGameOver.translate(Vector3f(-2.2f, .8f, 0f))
 
 
 
@@ -319,14 +323,10 @@ class Scene(private val window: GameWindow) {
     }
 
     fun render(dt: Float, t: Float) {
+        // Step 1: Render the scene to the framebuffer
         framebuffer.bind()
-
-        // get framebuffer size
-        val glfwWindow = window
-
         glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-
 
         glDepthFunc(GL_LEQUAL)
         glDepthMask(false)
@@ -334,43 +334,17 @@ class Scene(private val window: GameWindow) {
         skyboxRenderer.render(skybox, camera)
         glDepthMask(true)
         glDepthFunc(GL_LESS)
-        
-        staticShader.use()
 
+        staticShader.use()
         lightManager.bindPointLights(staticShader)
         lightManager.bindSpotLights(staticShader)
-
-        // Bind camera
         camera.bind(staticShader)
-
-        // Bind light
         lightManager.bindDirectionalLights(staticShader)
 
-        // Render Renderables
         for (renderable in renderables) {
             renderable.render(staticShader)
         }
 
-        if (gameState == GS_MENU || gameState == GS_STARTING) {
-            uiTitle.render(staticShader)
-            uiDigit1.render(staticShader)
-            uiDigit2.render(staticShader)
-            uiDigit3.render(staticShader)
-            uiDigit4.render(staticShader)
-        } else if (gameState == GS_GAMEOVER) {
-            uiGameOver.render(staticShader)
-            uiDigit1.render(staticShader)
-            uiDigit2.render(staticShader)
-            uiDigit3.render(staticShader)
-            uiDigit4.render(staticShader)
-        } else {
-            uiDigit1.render(staticShader)
-            uiDigit2.render(staticShader)
-            uiDigit3.render(staticShader)
-            uiDigit4.render(staticShader)
-        }
-
-        // Render Map Segments
         for (segment in mapManager.segments) {
             segment.renderable.render(staticShader)
         }
@@ -392,13 +366,9 @@ class Scene(private val window: GameWindow) {
             renderable.render(staticShader)
         }
 
-        // <- Szene zuende
-
         framebuffer.unbind()
 
-        glViewport(0, 0, window.windowWidth, window.windowHeight)
-        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-
+        // Step 2: Apply horizontal blur effect
         horizontalFramebuffer.bind()
         glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -412,9 +382,7 @@ class Scene(private val window: GameWindow) {
 
         horizontalFramebuffer.unbind()
 
-        glViewport(0, 0, window.windowWidth, window.windowHeight)
-        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-
+        // Step 3: Apply vertical blur effect
         verticalFramebuffer.bind()
         glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -428,6 +396,7 @@ class Scene(private val window: GameWindow) {
 
         verticalFramebuffer.unbind()
 
+        // Step 4: Render the blurred scene to the screen
         glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
@@ -436,6 +405,43 @@ class Scene(private val window: GameWindow) {
         glBindTexture(GL_TEXTURE_2D, verticalFramebuffer.textureID)
         textureShader.setUniform("screenTexture", 0)
         fullScreenQuad.render()
+
+        // Step 5: Render the UI elements directly to the screen without blur
+        glViewport(0, 0, window.windowWidth, window.windowHeight)
+        glClear(GL_DEPTH_BUFFER_BIT)
+
+
+        ui3dShader.use()
+        camera.bind(ui3dShader)
+        if (gameState == GS_MENU || gameState == GS_STARTING) {
+            uiTitle.render(ui3dShader)
+        } else if (gameState == GS_GAMEOVER) {
+            uiGameOver.render(uiShader)
+//            uiDigit1.render(uiShader)
+//            uiDigit2.render(uiShader)
+//            uiDigit3.render(uiShader)
+//            uiDigit4.render(uiShader)
+        } else {
+//            uiDigit1.render(uiShader)
+//            uiDigit2.render(uiShader)
+//            uiDigit3.render(uiShader)
+//            uiDigit4.render(uiShader)
+        }
+
+        renderScore()
+    }
+
+    fun renderScore() {
+        uiShader.use()
+        camera.bind(uiShader)
+
+        uiDigit1.render(uiShader)
+        uiDigit2.render(uiShader)
+        uiDigit3.render(uiShader)
+        uiDigit4.render(uiShader)
+        if (gameState == GS_GAMEOVER) {
+            uiGameOver.render(uiShader)
+        }
     }
 
 
@@ -454,7 +460,6 @@ class Scene(private val window: GameWindow) {
     fun update(dt: Float, t: Float) {
 
         if (dissolveFactor < 1f && shouldDissolve) {
-            println(dissolveFactor)
             player.dissolveFactor = dissolveFactor
             backWheels.dissolveFactor = dissolveFactor
             frontLeftWheel.dissolveFactor = dissolveFactor
@@ -477,6 +482,7 @@ class Scene(private val window: GameWindow) {
             if (menuAnimTime > 1f) {
                 gameState = GS_GAME
                 cameraHolder.setRotation(0f, 0f, 0f)
+                uiScore.setPosition(UI_SCORE_PLAY)
             } else {
                 val hpos = Vector3f(CAMERA_HOLDER_START_POS).lerp(player.getWorldPosition().add(CAMERA_HOLDER_END_POS), menuAnimTime)
                 val fov = 60f + 28f * Math.min(menuAnimTime, 1f)
@@ -485,6 +491,9 @@ class Scene(private val window: GameWindow) {
 
                 cameraHolder.rotate(0f, Math.toRadians(90.0*dt).toFloat(), 0f)
                 cameraHolder.setPosition(hpos)
+
+                uiScore.setPosition(lerp(UI_SCORE_PLAY, UI_SCORE_START, menuAnimTime))
+                println(UI_SCORE_START)
 
                 acceleratorState = menuAnimTime
                 menuAnimTime += dt
@@ -578,6 +587,7 @@ class Scene(private val window: GameWindow) {
     fun cleanup() {}
 
     private fun resetScene() {
+        setBlur(0f)
         player.setPosition(Vector3f(0f, 0f, 0f))
         player.setRotation(0f, Math.toRadians(180.0).toFloat(), 0f)
         player.scale(Vector3f(0.8f))
@@ -589,6 +599,7 @@ class Scene(private val window: GameWindow) {
         camera.fov = 60f
         menuAnimTime = 0f
         gameState = GS_MENU
+
 
         shouldDissolve = false
         dissolveFactor = 0f
@@ -603,8 +614,13 @@ class Scene(private val window: GameWindow) {
         void.setPosition(Vector3f(0f, 0f, -200f))
 
 
+        uiScore.setPosition(UI_SCORE_START)
+
+
         mapManager.currentSegment = 0
         mapManager.init(Random.nextInt())
+
+        updateScore()
     }
 
 
@@ -679,8 +695,8 @@ class Scene(private val window: GameWindow) {
         cameraAngle = lerp(targetRotation*.1f, cameraAngle, dt)
         camera.setRotation(cameraRotOffset.x, cameraRotOffset.y, cameraRotOffset.z)
         camera.setPosition(player.getWorldPosition().add(cameraOffset))
-        uiScore.setRotation(0f, 0f, -cameraAngle)
-        uiScore.scale(Vector3f(.1f*camera.fov/60f))
+//        uiScore.setRotation(0f, 0f, -cameraAngle)
+//        uiScore.scale(Vector3f(.1f*camera.fov/60f))
         val lowFovPos = Vector3f(.15f, 4.13f, -4f)
         val highFovPos = Vector3f(.15f, 4.3f, -4f)
         val desiredPos = if (gameState == GS_GAMEOVER) {
@@ -688,11 +704,11 @@ class Scene(private val window: GameWindow) {
         } else {
             lowFovPos.lerp(highFovPos, (camera.fov-80f)/20)
         }
-        uiScore.setPosition(player.getWorldPosition().add(desiredPos))
+//        uiScore.setPosition(player.getWorldPosition().add(desiredPos))
 
-        uiGameOver.setRotation(0f, 0f, -cameraAngle)
-        uiGameOver.scale(Vector3f(.2f))
-        uiGameOver.setPosition(player.getWorldPosition().add(Vector3f(.45f, 3.8f, -4.5f)))
+//        uiGameOver.setRotation(0f, 0f, -cameraAngle)
+//        uiGameOver.scale(Vector3f(.2f))
+//        uiGameOver.setPosition(player.getWorldPosition().add(Vector3f(.45f, 3.8f, -4.5f)))
     }
 
     private fun updateScore() {
@@ -714,9 +730,14 @@ class Scene(private val window: GameWindow) {
         gameState = GS_GAMEOVER
         camera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
         camera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
+
+        uiScore.setPosition(Vector3f(-.25f, -.1f, 0f))
     }
 
     private fun getScore(): Int {
+        if (gameState != GS_GAME) {
+            return 0
+        }
         return player.getWorldPosition().z.toInt()/10
     }
 
@@ -792,5 +813,13 @@ class Scene(private val window: GameWindow) {
 
     private fun lerp(target: Float, input: Float, speed: Float): Float {
         return input + ((target - input) * speed)
+    }
+
+    private fun lerp(target: Vector3f, input: Vector3f, speed: Float): Vector3f {
+        var newVal = Vector3f(input.x, input.y, input.z)
+        newVal.x = lerp(target.x, input.x, speed)
+        newVal.y = lerp(target.y, input.y, speed)
+        newVal.z = lerp(target.z, input.z, speed)
+        return newVal
     }
 }
