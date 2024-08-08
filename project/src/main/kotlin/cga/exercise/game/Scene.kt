@@ -18,6 +18,7 @@ import cga.framework.GLError
 import cga.framework.GameWindow
 import cga.framework.ModelLoader
 import org.joml.Math.clamp
+import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL20.*
@@ -31,6 +32,8 @@ class Scene(private val window: GameWindow) {
     private val staticShader: ShaderProgram = ShaderProgram("assets/shaders/main_vert.glsl", "assets/shaders/main_frag.glsl")
     private val uiShader: ShaderProgram = ShaderProgram("assets/shaders/ui_vert.glsl", "assets/shaders/ui_frag.glsl")
     private val ui3dShader: ShaderProgram = ShaderProgram("assets/shaders/ui3d_vert.glsl", "assets/shaders/ui3d_frag.glsl")
+    private val edgeDetectionShader: ShaderProgram = ShaderProgram("assets/shaders/outline_vert.glsl", "assets/shaders/outline_frag.glsl")
+    private val compositeShader: ShaderProgram = ShaderProgram("assets/shaders/composite_vert.glsl", "assets/shaders/composite_frag.glsl")
 
     val lightManager = LightManager()
 
@@ -141,6 +144,9 @@ class Scene(private val window: GameWindow) {
     private var textureShader: ShaderProgram
     private var fullScreenQuad: FullScreenQuad
 
+    // Edge Detection
+    private val edgeDetectionFramebuffer: Framebuffer
+
 
     //scene setup
     init {
@@ -166,6 +172,9 @@ class Scene(private val window: GameWindow) {
         blurEffectV = BlurEffect(verticalBlurShader,fullScreenQuad)
 
         setBlur(0f)
+
+        // Add Edge Detection
+        edgeDetectionFramebuffer = Framebuffer(window.windowWidth,window.windowHeight)
 
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
@@ -435,24 +444,40 @@ class Scene(private val window: GameWindow) {
 
         verticalFramebuffer.unbind()
 
-        // Render blurred frame
+        // Apply edge detection
+        edgeDetectionFramebuffer.bind()
         glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        textureShader.use()
+        edgeDetectionShader.use()
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, verticalFramebuffer.textureID)
-        textureShader.setUniform("screenTexture", 0)
+        edgeDetectionShader.setUniform("screenTexture", 0)
+        edgeDetectionShader.setUniform("texSize", Vector2f(window.windowWidth.toFloat(), window.windowHeight.toFloat()))
+        fullScreenQuad.render()
+
+        edgeDetectionFramebuffer.unbind()
+
+        // Composite edges with the scene
+        glViewport(0, 0, window.windowWidth, window.windowHeight)
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
+        // Use a shader that combines the edge detection with the blurred scene
+        compositeShader.use()
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, verticalFramebuffer.textureID) // The blurred scene
+        compositeShader.setUniform("sceneTexture", 0)
+        glActiveTexture(GL_TEXTURE1)
+        glBindTexture(GL_TEXTURE_2D, edgeDetectionFramebuffer.textureID) // The edge detection result
+        compositeShader.setUniform("edgeTexture", 1)
         fullScreenQuad.render()
 
         // Render UI
         glViewport(0, 0, window.windowWidth, window.windowHeight)
         glClear(GL_DEPTH_BUFFER_BIT)
 
-
         ui3dShader.use()
         camera.bind(ui3dShader)
-
 
         void.render(ui3dShader)
 
@@ -461,9 +486,9 @@ class Scene(private val window: GameWindow) {
             uiTitle.render(ui3dShader)
         }
 
-
         renderUI()
     }
+
 
     private fun renderUI() {
         uiShader.use()
