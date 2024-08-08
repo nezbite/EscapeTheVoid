@@ -16,6 +16,8 @@ Desktop.ini
 #Dev specific
 ## Compiled class file
 *.class
+build
+.gradle
 
 ## Log file
 *.log
@@ -28,6 +30,3 @@ Desktop.ini
 *.zip
 *.tar.gz
 *.rar
-
-## Virtual Machine Files
-project/build/
