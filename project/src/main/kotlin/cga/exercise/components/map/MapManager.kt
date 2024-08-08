@@ -12,6 +12,8 @@ class MapManager {
     val SEGMENT_SIZE = 3*6
     val FAR_SEGMENT_SIZE = 3*6*2
 
+    val TUNNEL_BORDER = -5.8f
+
     var segments: Array<MapSegment> = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
     var farSegments: Array<MapSegment> = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
     var obstacles: Array<MapObstacle> = Array(MAP_SIZE) { MapObstacle(Renderable(mutableListOf())) }
@@ -164,6 +166,20 @@ class MapManager {
             (carPos-3)*(SEGMENT_SIZE)-4f-obstacleLength,
             (carPos-3)*(SEGMENT_SIZE)-4f+obstacleLength
         )
+    }
+
+    fun getTunnelHitbox(): Hitbox? {
+        val carPos = currentSegment+4
+        if (segmentIds[carPos+2] == M_TUNNEL_ENTRY || segmentIds[carPos+2] == M_TUNNEL) {
+            return Hitbox(
+                TUNNEL_BORDER-10f,
+                TUNNEL_BORDER,
+                (carPos*SEGMENT_SIZE).toFloat(),
+                (carPos*SEGMENT_SIZE)+(SEGMENT_SIZE.toFloat()),
+            )
+        } else {
+            return null
+        }
     }
 }
 

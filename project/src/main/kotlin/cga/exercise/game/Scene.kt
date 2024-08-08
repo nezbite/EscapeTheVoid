@@ -114,6 +114,7 @@ class Scene(private val window: GameWindow) {
     private var renderCollisions = false
     private var debugColliders = mutableListOf<Renderable>()
     private var collisionDebugCubes = mutableListOf<Renderable>()
+    private var tunnelCollisionDebugCubes = mutableListOf<Renderable>()
 
     // Skybox
     private var skybox: Skybox
@@ -235,6 +236,14 @@ class Scene(private val window: GameWindow) {
         collisionDebugCubes.add(obstacleCube.copy())
         for (cube in collisionDebugCubes) {
             cube.scale(Vector3f(.2f, 2f, .2f))
+        }
+
+        tunnelCollisionDebugCubes.add(testCube!!.copy())
+        tunnelCollisionDebugCubes.add(testCube.copy())
+        tunnelCollisionDebugCubes.add(testCube.copy())
+        tunnelCollisionDebugCubes.add(testCube.copy())
+        for (cube in tunnelCollisionDebugCubes) {
+            cube.scale(Vector3f(.2f, 5f, .2f))
         }
         
         val cubeModel = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
@@ -369,6 +378,9 @@ class Scene(private val window: GameWindow) {
                 collider.render(staticShader)
             }
             for (cube in collisionDebugCubes) {
+                cube.render(staticShader)
+            }
+            for (cube in tunnelCollisionDebugCubes) {
                 cube.render(staticShader)
             }
         }
@@ -570,6 +582,15 @@ class Scene(private val window: GameWindow) {
             collisionDebugCubes[1].setPosition(Vector3f(hitbox.maxX, 0f, hitbox.minZ))
             collisionDebugCubes[2].setPosition(Vector3f(hitbox.minX, 0f, hitbox.maxZ))
             collisionDebugCubes[3].setPosition(Vector3f(hitbox.maxX, 0f, hitbox.maxZ))
+
+            val tunnelHitbox = mapManager.getTunnelHitbox()
+            if (tunnelHitbox == null) {
+                return
+            }
+            tunnelCollisionDebugCubes[0].setPosition(Vector3f(tunnelHitbox.minX, 5f, tunnelHitbox.minZ))
+            tunnelCollisionDebugCubes[1].setPosition(Vector3f(tunnelHitbox.maxX, 5f, tunnelHitbox.minZ))
+            tunnelCollisionDebugCubes[2].setPosition(Vector3f(tunnelHitbox.minX, 5f, tunnelHitbox.maxZ))
+            tunnelCollisionDebugCubes[3].setPosition(Vector3f(tunnelHitbox.maxX, 5f, tunnelHitbox.maxZ))
         }
     }
 
@@ -699,13 +720,24 @@ class Scene(private val window: GameWindow) {
         }
 
         // Obstacle collision
-        val hitbox = mapManager.getObstacleHitbox() ?: return
-        if (carCollider.checkHitboxCollision(hitbox)) {
-            velocity = -velocity * .8f
-            camera.startScreenShake(0.5f,0.5f)
-            gameOver()
+        val hitbox = mapManager.getObstacleHitbox()
+        if (hitbox != null) {
+            if (carCollider.checkHitboxCollision(hitbox)) {
+                velocity = -velocity * .8f
+                camera.startScreenShake(0.5f,0.5f)
+                gameOver()
+            }
         }
 
+        // Tunnel collision
+        val tunnelHitbox = mapManager.getTunnelHitbox()
+        if (tunnelHitbox != null) {
+            if (carCollider.checkHitboxCollision(tunnelHitbox)) {
+                velocity = -velocity * .8f
+                camera.startScreenShake(0.5f,0.5f)
+                gameOver()
+            }
+        }
     }
 
     private var cameraAngle = 0.0f
