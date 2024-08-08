@@ -14,9 +14,12 @@ class MapManager {
 
     var segments: Array<MapSegment> = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
     var farSegments: Array<MapSegment> = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
+    var obstacles: Array<MapObstacle> = Array(MAP_SIZE) { MapObstacle(Renderable(mutableListOf())) }
 
     var segmentIds = mutableListOf<Int>()
     var farSegmentIds = mutableListOf<Int>()
+    var obstacleIds = mutableListOf<Int>()
+    var obstaclePositions = mutableListOf<Int>()
 
     lateinit var random: Random
 
@@ -25,11 +28,13 @@ class MapManager {
 
     var roadModels = mutableListOf<Renderable>()
     var farModels = mutableListOf<Renderable>()
+    var obstacleModels = mutableListOf<Renderable>()
 
     fun init(seed: Int = 0) {
         random = Random(seed)
         segments = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
         farSegments = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
+        obstacles = Array(MAP_SIZE) { MapObstacle(Renderable(mutableListOf())) }
 
         segmentIds = mutableListOf()
         segmentIds.add(3)
@@ -42,7 +47,15 @@ class MapManager {
         for (i in 1 .. farSegments.size) {
             farSegmentIds.add(random.nextInt(farModels.size))
         }
+
+        obstacleIds = mutableListOf()
+        obstaclePositions = mutableListOf()
+        for (i in 0 .. obstacles.size) {
+            obstacleIds.add(random.nextInt(obstacleModels.size+1))
+            obstaclePositions.add(random.nextInt(0, 4))
+        }
         setSegments()
+        println(obstaclePositions)
     }
 
 
@@ -59,16 +72,23 @@ class MapManager {
                     farSegmentIds.add(random.nextInt(farModels.size))
                 }
             }
+            if (obstacleIds.size < currentSegment + MAP_SIZE) {
+                for (i in obstacleIds.size .. currentSegment + MAP_SIZE-1) {
+                    obstacleIds.add(random.nextInt(obstacleModels.size+1))
+                    obstaclePositions.add(random.nextInt(0, 4))
+                }
+            }
             setSegments()
         }
     }
 
     fun setSegments() {
+        if (currentSegment < 0) {
+            currentSegment = 0
+        }
+
         segments = Array(segments.size) { MapSegment(Renderable(mutableListOf())) }
         for (i in 0 .. segments.size-1) {
-            if (currentSegment < 0) {
-                currentSegment = 0
-            }
             val segment = MapSegment(roadModels[segmentIds[currentSegment+i]].copy())
             segment.position = currentSegment+i-2
             segment.renderable.setPosition(Vector3f(0f, 0f, segment.position*SEGMENT_SIZE.toFloat()))
@@ -76,13 +96,22 @@ class MapManager {
         }
         farSegments = Array(farSegments.size) { MapSegment(Renderable(mutableListOf())) }
         for (i in 0 .. farSegments.size-1) {
-            if (currentSegment < 0) {
-                currentSegment = 0
-            }
             val segment = MapSegment(farModels[farSegmentIds[currentSegment/2+i]].copy())
             segment.position = currentSegment/2+i-2
             segment.renderable.setPosition(Vector3f(0f, 0f, segment.position*FAR_SEGMENT_SIZE.toFloat()))
             farSegments[i] = segment
+        }
+        obstacles = Array(obstacles.size) { MapObstacle(Renderable(mutableListOf())) }
+        for (i in 0 .. obstacles.size-1) {
+            val obstacleId = obstacleIds[currentSegment+i]
+            if (obstacleId == obstacleModels.size) {
+                continue
+            }
+            val obstacle = MapObstacle(obstacleModels[obstacleId].copy())
+            obstacle.position = currentSegment+i-2
+            obstacle.lane = obstaclePositions[currentSegment+i]
+            obstacle.renderable.setPosition(Vector3f((obstacle.lane*3f)-4.5f, 0f, obstacle.position*SEGMENT_SIZE.toFloat()))
+            obstacles[i] = obstacle
         }
     }
 

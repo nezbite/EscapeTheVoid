@@ -298,6 +298,14 @@ class Scene(private val window: GameWindow) {
         mapManager.farModels.add(map_far1!!)
         mapManager.farModels.add(map_far2!!)
 
+        val map_obstacle_1 = ModelLoader.loadModel("assets/Environment/Obstacle1.obj", 0f, 0f, 0f)
+        val map_obstacle_2 = ModelLoader.loadModel("assets/Environment/Obstacle2.obj", 0f, 0f, 0f)
+        val map_obstacle_3 = ModelLoader.loadModel("assets/Environment/Obstacle3.obj", 0f, 0f, 0f)
+
+        mapManager.obstacleModels.add(map_obstacle_1!!)
+        mapManager.obstacleModels.add(map_obstacle_2!!)
+        mapManager.obstacleModels.add(map_obstacle_3!!)
+
         mapManager.init(Random.nextInt())
 
 
@@ -335,6 +343,10 @@ class Scene(private val window: GameWindow) {
 
         for (segment in mapManager.farSegments) {
             segment.renderable.render(staticShader)
+        }
+
+        for (obstacle in mapManager.obstacles) {
+            obstacle.renderable.render(staticShader)
         }
 
         if (renderCollisions) {
@@ -659,7 +671,6 @@ class Scene(private val window: GameWindow) {
         if (cameraHolder.getWorldRotation() != Vector3f(0f)) {
             cameraHolder.setRotation(0f, 0f, 0f)
         }
-        println(cameraAngle)
         val voidDistanceView = clamp(0f, 1f, 1-(voidDistance/50))
         val cameraPos = if (window.getKeyState(GLFW_KEY_E)) {
             Vector3f(0f, 4f, 5f)
