@@ -709,8 +709,8 @@ class Scene(private val window: GameWindow) {
                 player.translate(Vector3f(0.1f, 0.0f, 0.0f))
                 return
             }
-            if (player.getWorldRotation().y < .25f && player.getWorldRotation().y > -.25f) {
-                velocity = velocity*.9f
+            if (player.getWorldRotation().y < .3f && player.getWorldRotation().y > -.3f) {
+                velocity *= .9f
                 targetRotation = -3f
             } else {
                 velocity = -velocity * .8f
@@ -733,9 +733,32 @@ class Scene(private val window: GameWindow) {
         val tunnelHitbox = mapManager.getTunnelHitbox()
         if (tunnelHitbox != null) {
             if (carCollider.checkHitboxCollision(tunnelHitbox)) {
-                velocity = -velocity * .8f
-                camera.startScreenShake(0.5f,0.5f)
-                gameOver()
+                val field = FIELD_DIVIDER-.2f
+                if (player.getWorldPosition().x > field) {
+                    if (carCollider.checkZAxisCollision(field)) {
+                        val minDistance = field+.75f+abs(player.getWorldRotation().y)
+                        if (player.getWorldPosition().x < minDistance) {
+                            player.setPosition(Vector3f(minDistance, player.getWorldPosition().y, player.getWorldPosition().z))
+                        }
+                        if (player.getWorldRotation().y < 0 || targetRotation > 0) {
+                            targetRotation = 1f
+                            player.translate(Vector3f(-0.1f, 0.0f, 0.0f))
+                            return
+                        }
+                        if (player.getWorldRotation().y < .3f && player.getWorldRotation().y > -.3f) {
+                            velocity *= .9f
+                            targetRotation = -3f
+                        } else {
+                            velocity = -velocity * .8f
+                            camera.startScreenShake(0.5f,0.5f)
+                            gameOver()
+                        }
+                    }
+                } else {
+                    velocity = -velocity * .8f
+                    camera.startScreenShake(0.5f,0.5f)
+                    gameOver()
+                }
             }
         }
     }
