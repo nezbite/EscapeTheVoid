@@ -111,6 +111,7 @@ class Scene(private val window: GameWindow) {
     // Debug
     private var renderCollisions = false
     private var debugColliders = mutableListOf<Renderable>()
+    private var collisionDebugCubes = mutableListOf<Renderable>()
 
     // Skybox
     private var skybox: Skybox
@@ -224,6 +225,15 @@ class Scene(private val window: GameWindow) {
             ModelLoader.loadModel("assets/Car/FRWheel.obj", 0f, Math.toRadians(180.0).toFloat(), 0f)
 
         val testCube = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
+        val obstacleCube = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
+
+        collisionDebugCubes.add(obstacleCube!!.copy())
+        collisionDebugCubes.add(obstacleCube.copy())
+        collisionDebugCubes.add(obstacleCube.copy())
+        collisionDebugCubes.add(obstacleCube.copy())
+        for (cube in collisionDebugCubes) {
+            cube.scale(Vector3f(.2f, 2f, .2f))
+        }
         
         val cubeModel = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
         if (carModel != null && backWheelsModel != null && frontLeftWheelModel != null && frontRightWheelModel != null) {
@@ -356,6 +366,9 @@ class Scene(private val window: GameWindow) {
             for (collider in carCollider.renderables) {
                 collider.render(staticShader)
             }
+            for (cube in collisionDebugCubes) {
+                cube.render(staticShader)
+            }
         }
 
         for (renderable in carRenderables) {
@@ -443,6 +456,8 @@ class Scene(private val window: GameWindow) {
     private var menuAnimTime = 0f
 
     fun update(dt: Float, t: Float) {
+        updateDebug()
+
         updateDissolve(dt)
 
         when (gameState) {
@@ -534,6 +549,18 @@ class Scene(private val window: GameWindow) {
         mapManager.update()
     }
 
+    fun updateDebug() {
+        if (renderCollisions) {
+            val hitbox = mapManager.getObstacleHitbox()
+            if (hitbox == null) {
+                return
+            }
+            collisionDebugCubes[0].setPosition(Vector3f(hitbox.minX, 0f, hitbox.minZ))
+            collisionDebugCubes[1].setPosition(Vector3f(hitbox.maxX, 0f, hitbox.minZ))
+            collisionDebugCubes[2].setPosition(Vector3f(hitbox.minX, 0f, hitbox.maxZ))
+            collisionDebugCubes[3].setPosition(Vector3f(hitbox.maxX, 0f, hitbox.maxZ))
+        }
+    }
 
 
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
@@ -658,6 +685,14 @@ class Scene(private val window: GameWindow) {
                 camera.startScreenShake(0.5f,0.5f)
                 gameOver()
             }
+        }
+
+        // Obstacle collision
+        val hitbox = mapManager.getObstacleHitbox() ?: return
+        if (carCollider.checkHitboxCollision(hitbox)) {
+            velocity = -velocity * .8f
+            camera.startScreenShake(0.5f,0.5f)
+            gameOver()
         }
 
     }

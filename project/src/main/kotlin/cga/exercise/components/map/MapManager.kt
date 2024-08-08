@@ -48,14 +48,19 @@ class MapManager {
             farSegmentIds.add(random.nextInt(farModels.size))
         }
 
-        obstacleIds = mutableListOf()
-        obstaclePositions = mutableListOf()
-        for (i in 0 .. obstacles.size) {
-            obstacleIds.add(random.nextInt(obstacleModels.size+1))
-            obstaclePositions.add(random.nextInt(0, 4))
+        obstacleIds = MutableList(10) { -1 }
+        obstaclePositions = MutableList(10) { -1 }
+        for (i in 10 .. obstacles.size) {
+            val nextSegment = random.nextInt(-1, obstacleModels.size)
+            if (nextSegment == -1) {
+                obstacleIds.add(-1)
+                obstaclePositions.add(-1)
+            } else {
+                obstacleIds.add(nextSegment)
+                obstaclePositions.add(random.nextInt(0, 4))
+            }
         }
         setSegments()
-        println(obstaclePositions)
     }
 
 
@@ -73,8 +78,12 @@ class MapManager {
                 }
             }
             if (obstacleIds.size < currentSegment + MAP_SIZE) {
-                for (i in obstacleIds.size .. currentSegment + MAP_SIZE-1) {
-                    obstacleIds.add(random.nextInt(obstacleModels.size+1))
+                val nextSegment = random.nextInt(-1, obstacleModels.size)
+                if (nextSegment == -1) {
+                    obstacleIds.add(-1)
+                    obstaclePositions.add(-1)
+                } else {
+                    obstacleIds.add(nextSegment)
                     obstaclePositions.add(random.nextInt(0, 4))
                 }
             }
@@ -104,13 +113,13 @@ class MapManager {
         obstacles = Array(obstacles.size) { MapObstacle(Renderable(mutableListOf())) }
         for (i in 0 .. obstacles.size-1) {
             val obstacleId = obstacleIds[currentSegment+i]
-            if (obstacleId == obstacleModels.size) {
+            if (obstacleId == -1) {
                 continue
             }
             val obstacle = MapObstacle(obstacleModels[obstacleId].copy())
             obstacle.position = currentSegment+i-2
             obstacle.lane = obstaclePositions[currentSegment+i]
-            obstacle.renderable.setPosition(Vector3f((obstacle.lane*3f)-4.5f, 0f, obstacle.position*SEGMENT_SIZE.toFloat()))
+            obstacle.renderable.setPosition(Vector3f((obstacle.lane*3f)-4.5f, 0f, obstacle.position*SEGMENT_SIZE.toFloat()-10f))
             obstacles[i] = obstacle
         }
     }
@@ -139,6 +148,25 @@ class MapManager {
         }
         return followers[random.nextInt(followers.size)].id
     }
+
+    val obstacleWidth = 1f
+    val obstacleLength = 1.5f
+
+    fun getObstacleHitbox(): Hitbox? {
+        val carPos = currentSegment+8
+        val obstacleLane = obstaclePositions[carPos]
+        if (obstacleLane == -1) {
+            return null
+        }
+        return Hitbox(
+            (obstacleLane*3f)-4.5f-obstacleWidth,
+            (obstacleLane*3f)-4.5f+obstacleWidth,
+            (carPos-3)*(SEGMENT_SIZE)-4f-obstacleLength,
+            (carPos-3)*(SEGMENT_SIZE)-4f+obstacleLength
+        )
+    }
 }
+
+class Hitbox(val minX: Float, val maxX: Float, val minZ: Float, val maxZ: Float)
 
 class MapSegmentInfo(val id: Int, val probability: Int, val possibleFollowers: MutableList<Int>)

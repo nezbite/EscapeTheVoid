@@ -1,6 +1,7 @@
 package cga.exercise.components.collision
 
 import cga.exercise.components.geometry.Renderable
+import cga.exercise.components.map.Hitbox
 import org.joml.Vector3f
 import kotlin.math.roundToInt
 
@@ -63,6 +64,14 @@ class BoxCollider(var width: Float, var depth: Float) {
         val bcol = bounds.b.x > collisionPosition
         val ccol = bounds.c.x > collisionPosition
         val dcol = bounds.d.x > collisionPosition
+        return acol || bcol || ccol || dcol
+    }
+
+    fun checkHitboxCollision(hitbox: Hitbox): Boolean {
+        val acol = bounds.a.x > hitbox.minX && bounds.a.x < hitbox.maxX && bounds.a.z > hitbox.minZ && bounds.a.z < hitbox.maxZ
+        val bcol = bounds.b.x > hitbox.minX && bounds.b.x < hitbox.maxX && bounds.b.z > hitbox.minZ && bounds.b.z < hitbox.maxZ
+        val ccol = bounds.c.x > hitbox.minX && bounds.c.x < hitbox.maxX && bounds.c.z > hitbox.minZ && bounds.c.z < hitbox.maxZ
+        val dcol = bounds.d.x > hitbox.minX && bounds.d.x < hitbox.maxX && bounds.d.z > hitbox.minZ && bounds.d.z < hitbox.maxZ
         return acol || bcol || ccol || dcol
     }
 
