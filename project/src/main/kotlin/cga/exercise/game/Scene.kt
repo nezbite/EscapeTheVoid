@@ -72,6 +72,8 @@ class Scene(private val window: GameWindow) {
     private var dissolveFactor = 0.0f
 
     val HIGHWAY_DIVIDER = 5.8f
+    val FIELD_DIVIDER = -6f
+    val FIELD_TRANSITION = 1f
 
     private var void: Renderable
     private var voidSpeed = 3f
@@ -447,6 +449,8 @@ class Scene(private val window: GameWindow) {
     private var velocity = 0.0f
     private var friction = 1.0f
     private var maxSpeed = 50f
+    private var MAX_SPEED = 50f
+    private var MAX_SPEED_GRASS = 20f
     private var targetRotation = 0.0f
 
 
@@ -459,6 +463,13 @@ class Scene(private val window: GameWindow) {
         updateDebug()
 
         updateDissolve(dt)
+
+        val fieldDistance = player.getWorldPosition().x - FIELD_DIVIDER
+        if (fieldDistance > FIELD_TRANSITION) {
+            maxSpeed = MAX_SPEED
+        } else {
+            maxSpeed = lerp(MAX_SPEED, MAX_SPEED_GRASS, clamp(0f, 1f,fieldDistance / FIELD_TRANSITION))
+        }
 
         when (gameState) {
             // Main Menu
@@ -525,7 +536,7 @@ class Scene(private val window: GameWindow) {
         player.translate(Vector3f(0.0f, 0.0f, -velocity * dt))
 
         // Effects
-        camera.fov = 80f + 20f * Math.min(abs(velocity) / maxSpeed, 1f) + 20f * clamp(0f, 1f, 1-(voidDistance/50))
+        camera.fov = 80f + 20f * Math.min(abs(velocity) / MAX_SPEED, 1f) + 20f * clamp(0f, 1f, 1-(voidDistance/50))
 
         // Show Score
         updateScore()
@@ -654,9 +665,9 @@ class Scene(private val window: GameWindow) {
 
     private fun steeringInput() {
         targetRotation = if (window.getKeyState(GLFW_KEY_A)) {
-            rotateMul * (1 - velocity*.5f / maxSpeed)
+            rotateMul * (1 - velocity*.5f / MAX_SPEED)
         } else if (window.getKeyState(GLFW_KEY_D)) {
-            -rotateMul * (1 - velocity*.5f / maxSpeed)
+            -rotateMul * (1 - velocity*.5f / MAX_SPEED)
         } else {
             targetRotation * 0.95f
         }
