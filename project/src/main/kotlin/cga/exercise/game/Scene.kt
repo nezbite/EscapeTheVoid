@@ -445,7 +445,6 @@ class Scene(private val window: GameWindow) {
             GS_STARTING -> {
                 if (menuAnimTime > 1f) {
                     gameState = GS_GAME
-                    cameraHolder.setRotation(0f, 0f, 0f)
                     uiScore.setPosition(UI_SCORE_PLAY)
                 } else {
                     val hpos = Vector3f(CAMERA_HOLDER_START_POS).lerp(
@@ -657,6 +656,10 @@ class Scene(private val window: GameWindow) {
     private var cameraRotOffset = Vector3f(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
 
     private fun updateCamera(dt: Float) {
+        if (cameraHolder.getWorldRotation() != Vector3f(0f)) {
+            cameraHolder.setRotation(0f, 0f, 0f)
+        }
+        println(cameraAngle)
         val voidDistanceView = clamp(0f, 1f, 1-(voidDistance/50))
         val cameraPos = if (window.getKeyState(GLFW_KEY_E)) {
             Vector3f(0f, 4f, 5f)
@@ -694,6 +697,7 @@ class Scene(private val window: GameWindow) {
         gameState = GS_GAMEOVER
         camera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
         camera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
+        targetRotation = 0f
 
         uiScore.setPosition(Vector3f(-.25f, -.1f, 0f))
     }
