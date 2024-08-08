@@ -89,6 +89,12 @@ class Scene(private val window: GameWindow) {
     val UI_SCORE_START = Vector3f(-.25f, 1.2f, 0f)
     val UI_SCORE_PLAY = Vector3f(-.25f, .83f, 0f)
 
+    val UI_CREDITS_START = Vector3f(1.74f, -.82f, 0f)
+    val UI_CREDITS_PLAY = Vector3f(2.5f, -.82f, 0f)
+
+    val UI_CONTROLS_START = Vector3f(-1.62f, -.82f, 0f)
+    val UI_CONTROLS_PLAY = Vector3f(-2.5f, -.82f, 0f)
+
     private var uiTitle: Renderable
 
     private var uiScore: Transformable
@@ -109,6 +115,9 @@ class Scene(private val window: GameWindow) {
     private var ui9: Renderable
 
     private var uiGameOver: Renderable
+
+    private var uiControls: Renderable
+    private var uiCredits: Renderable
 
     // Debug
     private var renderCollisions = false
@@ -203,6 +212,14 @@ class Scene(private val window: GameWindow) {
         uiScore.setPosition(UI_SCORE_START)
         uiScore.scale(Vector3f(.25f))
 
+        uiControls = ModelLoader.loadModel("assets/UI/Controls.obj", 0f, 0f, 0f)!!
+        uiControls.setPosition(UI_CONTROLS_START)
+        uiControls.scale(Vector3f(.065f))
+
+        uiCredits = ModelLoader.loadModel("assets/UI/Credits.obj", 0f, 0f, 0f)!!
+        uiCredits.setPosition(UI_CREDITS_START)
+        uiCredits.scale(Vector3f(.065f))
+
 
         uiGameOver = ModelLoader.loadModel("assets/UI/GameOver.obj", 0f, 0f, 0f)!!
         uiGameOver.scale(Vector3f(.4f))
@@ -288,8 +305,8 @@ class Scene(private val window: GameWindow) {
         }
 
         // Add Headlights
-        leftHeadlight = SpotLight(Vector3f(-.6f, 0.7f, -1.2f), Vector3f(0f, .3f, 0f), Vector3f(1f), 1f, 22f)
-        rightHeadlight = SpotLight(Vector3f(.6f, 0.7f, -1.2f), Vector3f(0f, .3f, 0f), Vector3f(1f), 1f, 22f)
+        leftHeadlight = SpotLight(Vector3f(-.6f, 0.7f, -1.2f), Vector3f(0f, .2f, 0f), Vector3f(4f), 1f, 25f)
+        rightHeadlight = SpotLight(Vector3f(.6f, 0.7f, -1.2f), Vector3f(0f, .2f, 0f), Vector3f(4f), 1f, 25f)
 
         lightManager.addSpotLight(leftHeadlight)
         lightManager.addSpotLight(rightHeadlight)
@@ -445,10 +462,10 @@ class Scene(private val window: GameWindow) {
         }
 
 
-        renderScore()
+        renderUI()
     }
 
-    private fun renderScore() {
+    private fun renderUI() {
         uiShader.use()
         camera.bind(uiShader)
 
@@ -459,6 +476,8 @@ class Scene(private val window: GameWindow) {
         if (gameState == GS_GAMEOVER) {
             uiGameOver.render(uiShader)
         }
+        uiControls.render(uiShader)
+        uiCredits.render(uiShader)
     }
 
 
@@ -506,6 +525,8 @@ class Scene(private val window: GameWindow) {
                 if (menuAnimTime > 1f) {
                     gameState = GS_GAME
                     uiScore.setPosition(UI_SCORE_PLAY)
+                    uiCredits.setPosition(UI_CREDITS_PLAY)
+                    uiControls.setPosition(UI_CONTROLS_PLAY)
                 } else {
                     val hpos = Vector3f(CAMERA_HOLDER_START_POS).lerp(
                         player.getWorldPosition().add(CAMERA_HOLDER_END_POS),
@@ -519,6 +540,8 @@ class Scene(private val window: GameWindow) {
                     cameraHolder.setPosition(hpos)
 
                     uiScore.setPosition(lerp(UI_SCORE_PLAY, UI_SCORE_START, menuAnimTime))
+                    uiCredits.setPosition(lerp(UI_CREDITS_PLAY, UI_CREDITS_START, menuAnimTime))
+                    uiControls.setPosition(lerp(UI_CONTROLS_PLAY, UI_CONTROLS_START, menuAnimTime))
 
                     acceleratorState = menuAnimTime
                     menuAnimTime += dt
@@ -665,6 +688,8 @@ class Scene(private val window: GameWindow) {
         void.setPosition(Vector3f(0f, 0f, -200f))
 
         uiScore.setPosition(UI_SCORE_START)
+        uiCredits.setPosition(UI_CREDITS_START)
+        uiControls.setPosition(UI_CONTROLS_START)
 
         mapManager.currentSegment = 0
         mapManager.init(Random.nextInt())
