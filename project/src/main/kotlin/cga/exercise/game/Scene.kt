@@ -705,6 +705,7 @@ class Scene(private val window: GameWindow) {
         cameraHolder.setPosition(CAMERA_HOLDER_START_POS)
         camera.setRotation(CAMERA_START_ROT.x, CAMERA_START_ROT.y, CAMERA_START_ROT.z)
         camera.fov = 60f
+        cameraAngle = 0f
         menuAnimTime = 0f
         voidAnimTime = 0f
         gameState = GS_MENU
