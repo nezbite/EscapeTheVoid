@@ -100,6 +100,11 @@ class Scene(private val window: GameWindow) {
     val UI_CONTROLS_START = Vector3f(-1.62f, -.82f, 0f)
     val UI_CONTROLS_PLAY = Vector3f(-2.5f, -.82f, 0f)
 
+    val RPM_GAUGE_PLAY = Vector3f(-1.45f, -.75f, 0f)
+    val RPM_GAUGE_START = Vector3f(-2.2f, -.75f, 0f)
+    var rpmGaugePos = RPM_GAUGE_START
+
+
     private var uiTitle: Renderable
 
     private var uiScore: Transformable
@@ -123,6 +128,9 @@ class Scene(private val window: GameWindow) {
 
     private var uiControls: Renderable
     private var uiCredits: Renderable
+
+    private var uiRPMInfo: Renderable
+    private var uiRPMNeedle: Renderable
 
     // Debug
     private var renderCollisions = false
@@ -234,6 +242,15 @@ class Scene(private val window: GameWindow) {
         uiGameOver = ModelLoader.loadModel("assets/UI/GameOver.obj", 0f, 0f, 0f)!!
         uiGameOver.scale(Vector3f(.4f))
         uiGameOver.translate(Vector3f(-2.2f, .8f, 0f))
+
+        uiRPMInfo = ModelLoader.loadModel("assets/UI/RPMGauge_Info.obj", 0f, 0f, 0f)!!
+        uiRPMNeedle = ModelLoader.loadModel("assets/UI/Needle.obj", 0f, 0f, 0f)!!
+
+        uiRPMInfo.scale(Vector3f(.005f))
+        uiRPMNeedle.scale(Vector3f(.005f))
+
+        uiRPMInfo.setPosition(RPM_GAUGE_START)
+        uiRPMNeedle.setPosition(RPM_GAUGE_START)
 
 
         // Setting up the Void
@@ -513,6 +530,8 @@ class Scene(private val window: GameWindow) {
         }
         uiControls.render(uiShader)
         uiCredits.render(uiShader)
+        uiRPMInfo.render(uiShader)
+        uiRPMNeedle.render(uiShader)
     }
 
 
@@ -533,6 +552,7 @@ class Scene(private val window: GameWindow) {
 
     fun update(dt: Float, t: Float) {
         updateBodyRoll(dt)
+        updateRPMGauge(dt)
         updateDebug()
 
         updateDissolve(dt)
@@ -564,6 +584,9 @@ class Scene(private val window: GameWindow) {
                     uiScore.setPosition(UI_SCORE_PLAY)
                     uiCredits.setPosition(UI_CREDITS_PLAY)
                     uiControls.setPosition(UI_CONTROLS_PLAY)
+
+                    rpmGaugePos = RPM_GAUGE_PLAY
+                    uiRPMInfo.setPosition(RPM_GAUGE_PLAY)
                 } else {
                     val hpos = Vector3f(CAMERA_HOLDER_START_POS).lerp(
                         player.getWorldPosition().add(CAMERA_HOLDER_END_POS),
@@ -579,6 +602,9 @@ class Scene(private val window: GameWindow) {
                     uiScore.setPosition(lerp(UI_SCORE_PLAY, UI_SCORE_START, menuAnimTime))
                     uiCredits.setPosition(lerp(UI_CREDITS_PLAY, UI_CREDITS_START, menuAnimTime))
                     uiControls.setPosition(lerp(UI_CONTROLS_PLAY, UI_CONTROLS_START, menuAnimTime))
+
+                    rpmGaugePos = lerp(RPM_GAUGE_PLAY, RPM_GAUGE_START, menuAnimTime)
+                    uiRPMInfo.setPosition(lerp(RPM_GAUGE_PLAY, RPM_GAUGE_START, menuAnimTime))
 
                     acceleratorState = menuAnimTime
                     menuAnimTime += dt
@@ -751,6 +777,17 @@ class Scene(private val window: GameWindow) {
             accelerationInput()
             steeringInput()
         }
+    }
+
+    var rpmRotation = 0f
+    private fun updateRPMGauge(dt: Float) {
+        val targetRotation = Math.toRadians(-270.0).toFloat() * rpm/8000f
+        rpmRotation = lerp(rpmRotation, targetRotation, dt/50)
+        uiRPMNeedle.setRotation(0f, 0f, rpmRotation)
+        uiRPMNeedle.setPosition(rpmGaugePos)
+//        uiRPMNeedle.setRotation(0f, 0f, targetRotation)
+        uiRPMNeedle.scale(Vector3f(.005f))
+        println(rpmRotation)
     }
 
     private fun accelerationInput() {
@@ -973,22 +1010,23 @@ class Scene(private val window: GameWindow) {
 
     val MAX_RPM = 8000f
     val MIN_RPM = 800f
-    val GEAR_RATIOS = listOf(0.8f, 1.1f, 1.4f, 1.5f, 1.55f, 1.6f)
+    val GEAR_RATIOS = listOf(0.8f, 1.1f, 1.3f, 1.3f, 1.35f, 1.4f)
     val SHIFTING_TIME = .25f
     var gear = 0
     var rpm = MIN_RPM
-    var shifting = 0f
+    var shifting = SHIFTING_TIME
 
     // simulate car acceleration with gears and rpm
     private fun updateCarAcceleration(dt: Float) {
         if (shifting < SHIFTING_TIME) {
             // Shifting
             shifting += dt
+            rpm = velocity*200/GEAR_RATIOS[gear]
             velocity = velocity * (1 - dt * friction) + (0f * maxSpeed) * (dt * friction)
         } else {
             // Calculate RPM
-            rpm = velocity*150/GEAR_RATIOS[gear]
-            if (rpm > 4000f && gear < GEAR_RATIOS.size-1) {
+            rpm = velocity*200/GEAR_RATIOS[gear]
+            if (rpm > 6000f && gear < GEAR_RATIOS.size-1) {
                 gear++
                 shifting = 0f
             } else if (rpm < 1000f && gear > 0) {
@@ -997,9 +1035,6 @@ class Scene(private val window: GameWindow) {
             }
             velocity = velocity * (1 - dt * friction) + (acceleratorState * maxSpeed) * (dt * friction)
         }
-        println("GEAR: $gear | RPM: $rpm")
-
-
     }
 
     private fun setBlur(blurAmount: Float) {
