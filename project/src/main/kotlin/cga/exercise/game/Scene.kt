@@ -589,7 +589,7 @@ class Scene(private val window: GameWindow) {
                     val roll = targetRotation * dt * Math.min(velocity / 5, 1f)
                     player.rotate(0.0f, roll, 0.0f)
 
-                    velocity = velocity * (1 - dt * friction) + (acceleratorState * maxSpeed) * (dt * friction)
+                    updateCarAcceleration(dt)
                     player.translate(Vector3f(0.0f, 0.0f, -velocity * dt))
                     updateWheelSpin(dt)
                 }
@@ -602,7 +602,7 @@ class Scene(private val window: GameWindow) {
                 val roll = targetRotation * dt * Math.min(velocity / 5, 1f)
                 player.rotate(0.0f, roll, 0.0f)
 
-                velocity = velocity * (1 - dt * friction) + (acceleratorState * maxSpeed) * (dt * friction)
+                updateCarAcceleration(dt)
                 player.translate(Vector3f(0.0f, 0.0f, -velocity * dt))
                 updateWheelSpin(dt)
 
@@ -615,7 +615,7 @@ class Scene(private val window: GameWindow) {
         }
 
         // Velocity calculation
-        velocity = velocity * (1 - dt * friction) + (acceleratorState * maxSpeed) * (dt * friction)
+        updateCarAcceleration(dt)
 
         // Steering calculation
         val roll = targetRotation * dt * Math.min(velocity / 5, 1f)
@@ -969,6 +969,37 @@ class Scene(private val window: GameWindow) {
         val pitch = ((velocity - lastVelocity) * 4f ) / 1f * .05f
         carBody.setRotation(lerp(pitch, carBody.getRotation().x, dt*5), 0f, lerp(roll, carBody.getRotation().z, dt*5))
         lastVelocity = velocity
+    }
+
+    val MAX_RPM = 8000f
+    val MIN_RPM = 800f
+    val GEAR_RATIOS = listOf(0.8f, 1.1f, 1.4f, 1.5f, 1.55f, 1.6f)
+    val SHIFTING_TIME = .25f
+    var gear = 0
+    var rpm = MIN_RPM
+    var shifting = 0f
+
+    // simulate car acceleration with gears and rpm
+    private fun updateCarAcceleration(dt: Float) {
+        if (shifting < SHIFTING_TIME) {
+            // Shifting
+            shifting += dt
+            velocity = velocity * (1 - dt * friction) + (0f * maxSpeed) * (dt * friction)
+        } else {
+            // Calculate RPM
+            rpm = velocity*150/GEAR_RATIOS[gear]
+            if (rpm > 4000f && gear < GEAR_RATIOS.size-1) {
+                gear++
+                shifting = 0f
+            } else if (rpm < 1000f && gear > 0) {
+                gear--
+                shifting = 0f
+            }
+            velocity = velocity * (1 - dt * friction) + (acceleratorState * maxSpeed) * (dt * friction)
+        }
+        println("GEAR: $gear | RPM: $rpm")
+
+
     }
 
     private fun setBlur(blurAmount: Float) {
