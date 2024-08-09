@@ -8,11 +8,13 @@ Escape the Void
 # Featureliste
 
 ## Shader
+- Directional Light im main Shader (Kaan)
 - Cel-Shading (Daniel & Kaan)
 - Dissolve Shader (Kaan)
 
 ## Post Processing & Visuelle Effekte
-- Edge Detection (Daniel)
+- Framebuffer + Fullscreen-Quad Renderer (Kaan)
+- Edge Detection (Daniel) 
 - Screen Shake (Kaan)
 - Blur (Kaan)
 - Skybox (Kaan)
