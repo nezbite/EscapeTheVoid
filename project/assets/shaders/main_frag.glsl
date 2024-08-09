@@ -1,6 +1,6 @@
 #version 330 core
 
-const int MAX_LIGHTS = 4;
+const int MAX_LIGHTS = 12;
 
 // Eingang vom Vertex-Shader
 in struct VertexData {

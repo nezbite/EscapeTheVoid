@@ -155,7 +155,6 @@ class Scene(private val window: GameWindow) {
 
         // Add lights
         lightManager.addDirectionalLight(DirectionalLight(Vector3f(1.0f, 1.0f, -1.0f), Vector3f(1.5f, 3.0f, 4.0f), 0.1f))
-        lightManager.addPointLight(PointLight(Vector3f(3.0f),Vector3f(3.0f,1.0f,1.0f)))
 
         // Add Skybox
         skyboxShaderProgram = ShaderProgram("assets/shaders/skybox_vert.glsl","assets/shaders/skybox_frag.glsl")
@@ -378,6 +377,10 @@ class Scene(private val window: GameWindow) {
         skyboxRenderer.render(skybox, camera)
         glDepthMask(true)
         glDepthFunc(GL_LESS)
+
+
+        // Add Map Lights
+        lightManager.mapPointLights(mapManager.pointLights)
 
         // Draw using Toon Shader
         staticShader.use()

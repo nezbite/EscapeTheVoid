@@ -6,6 +6,7 @@ class LightManager {
     val directionalLights = mutableListOf<DirectionalLight>()
     val spotLights = mutableListOf<SpotLight>()
     val pointLights = mutableListOf<PointLight>()
+    val mapPointLights = mutableListOf<PointLight>()
 
     fun addDirectionalLight(light: DirectionalLight) {
         directionalLights.add(light)
@@ -19,6 +20,11 @@ class LightManager {
         pointLights.add(light)
     }
 
+    fun mapPointLights(lights: MutableList<PointLight>) {
+        mapPointLights.clear()
+        mapPointLights.addAll(lights)
+    }
+
     fun bindDirectionalLights(shaderProgram: ShaderProgram) {
         shaderProgram.setUniform("numDirLights", directionalLights.size)
 
@@ -28,12 +34,15 @@ class LightManager {
     }
 
     fun bindPointLights(shaderProgram: ShaderProgram) {
-        shaderProgram.setUniform("numPointLights", pointLights.size)
+        shaderProgram.setUniform("numPointLights", pointLights.size + mapPointLights.size)
 
         for ((index, light) in pointLights.withIndex()) {
             light.bind(shaderProgram, index)
         }
-    }
+        for ((index, light) in mapPointLights.withIndex()) {
+            light.bind(shaderProgram, index + pointLights.size)
+        }
+     }
 
     fun bindSpotLights(shaderProgram: ShaderProgram) {
         shaderProgram.setUniform("numSpotLights", spotLights.size)

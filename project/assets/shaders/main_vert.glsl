@@ -11,7 +11,7 @@ uniform mat4 view_matrix;
 uniform mat4 proj_matrix;
 uniform vec2 tcMultiplier; // Texturkoordinaten-Multiplikator
 
-const int MAX_LIGHTS = 4;
+const int MAX_LIGHTS = 12;
 
 // Ausgabe-Datenstruktur
 out struct VertexData

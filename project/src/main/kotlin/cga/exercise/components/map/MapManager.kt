@@ -1,6 +1,7 @@
 package cga.exercise.components.map
 
 import cga.exercise.components.geometry.Renderable
+import cga.exercise.components.light.PointLight
 import org.joml.Vector3f
 import kotlin.random.Random
 
@@ -11,12 +12,14 @@ class MapManager {
     val MAP_SIZE = 40
     val SEGMENT_SIZE = 3*6
     val FAR_SEGMENT_SIZE = 3*6*2
+    val MAX_POINT_LIGHTS = 9
 
     val TUNNEL_BORDER = -5.8f
 
     var segments: Array<MapSegment> = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
     var farSegments: Array<MapSegment> = Array(MAP_SIZE) { MapSegment(Renderable(mutableListOf())) }
     var obstacles: Array<MapObstacle> = Array(MAP_SIZE) { MapObstacle(Renderable(mutableListOf())) }
+    var pointLights: MutableList<PointLight> = mutableListOf()
 
     var segmentIds = mutableListOf<Int>()
     var farSegmentIds = mutableListOf<Int>()
@@ -99,11 +102,20 @@ class MapManager {
         }
 
         segments = Array(segments.size) { MapSegment(Renderable(mutableListOf())) }
+        pointLights = mutableListOf()
         for (i in 0 .. segments.size-1) {
             val segment = MapSegment(roadModels[segmentIds[currentSegment+i]].copy())
             segment.position = currentSegment+i-2
             segment.renderable.setPosition(Vector3f(0f, 0f, segment.position*SEGMENT_SIZE.toFloat()))
             segments[i] = segment
+
+            if (segmentIds[currentSegment+i] == M_TUNNEL_ENTRY || segmentIds[currentSegment+i] == M_TUNNEL) {
+                if (pointLights.size >= MAX_POINT_LIGHTS) {
+                    continue
+                }
+                val light = PointLight(Vector3f(0f, 5.5f, segment.position*SEGMENT_SIZE.toFloat()+SEGMENT_SIZE.toFloat()/2), Vector3f(10f))
+                pointLights.add(light)
+            }
         }
         farSegments = Array(farSegments.size) { MapSegment(Renderable(mutableListOf())) }
         for (i in 0 .. farSegments.size-1) {
