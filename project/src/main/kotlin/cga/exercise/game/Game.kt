@@ -15,7 +15,7 @@ class Game(width: Int,
 
     private val scene: Scene
     init {
-        setCursorVisible(false)
+        setCursorVisible(true)
         scene = Scene(this)
     }
 
