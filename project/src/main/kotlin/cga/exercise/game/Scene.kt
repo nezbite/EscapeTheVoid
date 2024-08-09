@@ -104,6 +104,9 @@ class Scene(private val window: GameWindow) {
     val RPM_GAUGE_START = Vector3f(-2.2f, -.75f, 0f)
     var rpmGaugePos = RPM_GAUGE_START
 
+    val GEAR_GAUGE_PLAY = Vector3f(-1.48f, -.9f, 0f)
+    val GEAR_GAUGE_START = Vector3f(-2.2f, -.9f, 0f)
+
 
     private var uiTitle: Renderable
 
@@ -112,6 +115,8 @@ class Scene(private val window: GameWindow) {
     private var uiDigit2: Renderable
     private var uiDigit3: Renderable
     private var uiDigit4: Renderable
+
+    private var uiDigitGear: Renderable
 
     private var ui0: Renderable
     private var ui1: Renderable
@@ -219,6 +224,8 @@ class Scene(private val window: GameWindow) {
         uiDigit3 = ui0.copy()
         uiDigit4 = ui0.copy()
 
+        uiDigitGear = ui1.copy()
+
         uiDigit1.parent = uiScore
         uiDigit2.parent = uiScore
         uiDigit3.parent = uiScore
@@ -248,9 +255,11 @@ class Scene(private val window: GameWindow) {
 
         uiRPMInfo.scale(Vector3f(.005f))
         uiRPMNeedle.scale(Vector3f(.005f))
+        uiDigitGear.scale(Vector3f(.15f))
 
         uiRPMInfo.setPosition(RPM_GAUGE_START)
         uiRPMNeedle.setPosition(RPM_GAUGE_START)
+        uiDigitGear.setPosition(GEAR_GAUGE_START)
 
 
         // Setting up the Void
@@ -525,6 +534,7 @@ class Scene(private val window: GameWindow) {
         uiDigit2.render(uiShader)
         uiDigit3.render(uiShader)
         uiDigit4.render(uiShader)
+        uiDigitGear.render(uiShader)
         if (gameState == GS_GAMEOVER) {
             uiGameOver.render(uiShader)
         }
@@ -587,6 +597,7 @@ class Scene(private val window: GameWindow) {
 
                     rpmGaugePos = RPM_GAUGE_PLAY
                     uiRPMInfo.setPosition(RPM_GAUGE_PLAY)
+                    uiDigitGear.setPosition(GEAR_GAUGE_PLAY)
                 } else {
                     val hpos = Vector3f(CAMERA_HOLDER_START_POS).lerp(
                         player.getWorldPosition().add(CAMERA_HOLDER_END_POS),
@@ -605,6 +616,7 @@ class Scene(private val window: GameWindow) {
 
                     rpmGaugePos = lerp(RPM_GAUGE_PLAY, RPM_GAUGE_START, menuAnimTime)
                     uiRPMInfo.setPosition(lerp(RPM_GAUGE_PLAY, RPM_GAUGE_START, menuAnimTime))
+                    uiDigitGear.setPosition(lerp(GEAR_GAUGE_PLAY, GEAR_GAUGE_START, menuAnimTime))
 
                     acceleratorState = menuAnimTime
                     menuAnimTime += dt
@@ -754,6 +766,9 @@ class Scene(private val window: GameWindow) {
         uiScore.setPosition(UI_SCORE_START)
         uiCredits.setPosition(UI_CREDITS_START)
         uiControls.setPosition(UI_CONTROLS_START)
+        uiRPMInfo.setPosition(RPM_GAUGE_START)
+        uiDigitGear.setPosition(GEAR_GAUGE_START)
+        rpmGaugePos = RPM_GAUGE_START
 
         mapManager.currentSegment = 0
         mapManager.init(Random.nextInt())
@@ -781,13 +796,14 @@ class Scene(private val window: GameWindow) {
 
     var rpmRotation = 0f
     private fun updateRPMGauge(dt: Float) {
-        val targetRotation = Math.toRadians(-270.0).toFloat() * rpm/8000f
-        rpmRotation = lerp(rpmRotation, targetRotation, dt/50)
-        uiRPMNeedle.setRotation(0f, 0f, rpmRotation)
+        if (gameState != GS_GAMEOVER) {
+            val targetRotation = Math.toRadians(-270.0).toFloat() * rpm/8000f
+            rpmRotation = lerp(rpmRotation, targetRotation, dt/50)
+            uiRPMNeedle.setRotation(0f, 0f, rpmRotation)
+            uiDigitGear.meshes = getNumberModel(gear+1).meshes
+        }
         uiRPMNeedle.setPosition(rpmGaugePos)
-//        uiRPMNeedle.setRotation(0f, 0f, targetRotation)
         uiRPMNeedle.scale(Vector3f(.005f))
-        println(rpmRotation)
     }
 
     private fun accelerationInput() {
@@ -927,6 +943,9 @@ class Scene(private val window: GameWindow) {
             camera.setRotation(.5f, Math.toRadians(180.0).toFloat(), cameraAngle)
             camera.setPosition(player.getWorldPosition().add(Vector3f(0f, 4f, -5f)))
         }
+        uiRPMInfo.setPosition(RPM_GAUGE_START)
+        uiDigitGear.setPosition(GEAR_GAUGE_START)
+        rpmGaugePos = RPM_GAUGE_START
         targetRotation = 0f
         uiScore.setPosition(Vector3f(-.25f, -.1f, 0f))
     }
