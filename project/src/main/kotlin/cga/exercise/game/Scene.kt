@@ -727,9 +727,6 @@ class Scene(private val window: GameWindow) {
         if (key == GLFW_KEY_C && action == GLFW_PRESS) {
             renderCollisions = !renderCollisions
         }
-        if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-           shouldDissolve = !shouldDissolve
-        }
         if (key == GLFW_KEY_W && action == GLFW_PRESS && gameState == GS_MENU) {
             gameState = GS_STARTING
         }

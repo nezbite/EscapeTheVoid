@@ -109,7 +109,7 @@ class MapManager {
             segment.renderable.setPosition(Vector3f(0f, 0f, segment.position*SEGMENT_SIZE.toFloat()))
             segments[i] = segment
 
-            if (segmentIds[currentSegment+i] == M_TUNNEL_ENTRY || segmentIds[currentSegment+i] == M_TUNNEL) {
+            if (segmentIds[currentSegment+i] == M_TUNNEL_ENTRY || segmentIds[currentSegment+i] == M_TUNNEL && i > 5) {
                 if (pointLights.size >= MAX_POINT_LIGHTS) {
                     continue
                 }
