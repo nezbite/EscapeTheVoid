@@ -58,7 +58,8 @@ class Scene(private val window: GameWindow) {
     private var cameraHolder: Transformable = Transformable()
 
 
-    private lateinit var player: Renderable
+    private lateinit var player: Transformable
+    private lateinit var carBody: Renderable
     private lateinit var backWheels: Renderable
     private lateinit var frontLeftWheelTurning: Transformable
     private lateinit var frontRightWheelTurning: Transformable
@@ -274,14 +275,17 @@ class Scene(private val window: GameWindow) {
         
         val cubeModel = ModelLoader.loadModel("assets/Environment/cube.obj", 0f, 0f, 0f)
         if (carModel != null && backWheelsModel != null && frontLeftWheelModel != null && frontRightWheelModel != null) {
-            carModel.scale(Vector3f(0.8f))
-            backWheelsModel.parent = carModel
+            player = Transformable()
+
+            player.scale(Vector3f(0.8f))
+            backWheelsModel.parent = player
             val flWheelObject = Transformable()
             val frWheelObject = Transformable()
-            flWheelObject.parent = carModel
-            frWheelObject.parent = carModel
+            flWheelObject.parent = player
+            frWheelObject.parent = player
             frontLeftWheelModel.parent = flWheelObject
             frontRightWheelModel.parent = frWheelObject
+            carModel.parent = player
 
             testCube!!.scale(Vector3f(0.1f, 1f, 0.1f))
 
@@ -290,7 +294,7 @@ class Scene(private val window: GameWindow) {
             carRenderables.add(frontRightWheelModel)
             carRenderables.add(carModel)
 
-            player = carModel
+            carBody = carModel
             backWheels = backWheelsModel
             frontLeftWheelTurning = flWheelObject
             frontRightWheelTurning = frWheelObject
@@ -525,6 +529,7 @@ class Scene(private val window: GameWindow) {
     private var voidAnimTime = 0f
 
     fun update(dt: Float, t: Float) {
+        updateBodyRoll(dt)
         updateDebug()
 
         updateDissolve(dt)
@@ -540,8 +545,6 @@ class Scene(private val window: GameWindow) {
         if (player.getWorldPosition().x < -10f) {
             velocity = lerp(0f, velocity, clamp(0f, 1f, -fieldDistance / 800f))
         }
-
-        println(velocity)
 
         when (gameState) {
             // Main Menu
@@ -708,7 +711,7 @@ class Scene(private val window: GameWindow) {
 
         shouldDissolve = false
         dissolveFactor = 0f
-        player.dissolveFactor = 0f
+        carBody.dissolveFactor = 0f
         backWheels.dissolveFactor = 0f
         frontLeftWheel.dissolveFactor = 0f
         frontRightWheel.dissolveFactor = 0f
@@ -732,7 +735,7 @@ class Scene(private val window: GameWindow) {
     // Update functions
     private fun updateDissolve(dt: Float) {
         if (dissolveFactor < 1f && shouldDissolve) {
-            player.dissolveFactor = dissolveFactor
+            carBody.dissolveFactor = dissolveFactor
             backWheels.dissolveFactor = dissolveFactor
             frontLeftWheel.dissolveFactor = dissolveFactor
             frontRightWheel.dissolveFactor = dissolveFactor
@@ -954,6 +957,14 @@ class Scene(private val window: GameWindow) {
 
         // Update wheel spin
         backWheels.rotateAroundPoint(-velocity*dt*5, 0.0f, 0.0f, Vector3f(0.0f, 0.35f, 1.32f))
+    }
+
+    var lastVelocity = 0f
+    private fun updateBodyRoll(dt: Float) {
+        val roll = -targetRotation * dt * clamp(0f, 1f, velocity / 40) * 10f
+        val pitch = ((velocity - lastVelocity) * 4f ) / 1f * .05f
+        carBody.setRotation(lerp(pitch, carBody.getRotation().x, dt*5), 0f, lerp(roll, carBody.getRotation().z, dt*5))
+        lastVelocity = velocity
     }
 
     private fun setBlur(blurAmount: Float) {
