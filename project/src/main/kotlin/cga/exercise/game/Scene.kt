@@ -866,7 +866,7 @@ class Scene(private val window: GameWindow) {
                 targetRotation = -3f
             } else {
                 velocity = -velocity * .8f
-                camera.startScreenShake(0.5f,0.5f)
+                camera.startScreenShake(1.0f,0.7f)
                 gameOver()
             }
         }
