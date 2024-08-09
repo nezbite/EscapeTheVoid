@@ -9,7 +9,7 @@ import kotlin.random.Random
  * Class for managing the infinitely generated map
  */
 class MapManager {
-    val MAP_SIZE =20
+    val MAP_SIZE = 30
     val SEGMENT_SIZE = 3*6
     val FAR_SEGMENT_SIZE = 3*6*2
     val MAX_POINT_LIGHTS = 8-3
