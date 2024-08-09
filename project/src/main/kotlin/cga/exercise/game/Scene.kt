@@ -35,6 +35,9 @@ class Scene(private val window: GameWindow) {
     private val edgeDetectionShader: ShaderProgram = ShaderProgram("assets/shaders/outline_vert.glsl", "assets/shaders/outline_frag.glsl")
     private val compositeShader: ShaderProgram = ShaderProgram("assets/shaders/composite_vert.glsl", "assets/shaders/composite_frag.glsl")
 
+    var drawEdges = true
+    var edgeDraw = 1f
+
     val lightManager = LightManager()
 
     val GS_MENU = 0
@@ -97,8 +100,8 @@ class Scene(private val window: GameWindow) {
     val UI_CREDITS_START = Vector3f(1.74f, -.82f, 0f)
     val UI_CREDITS_PLAY = Vector3f(2.5f, -.82f, 0f)
 
-    val UI_CONTROLS_START = Vector3f(-1.62f, -.82f, 0f)
-    val UI_CONTROLS_PLAY = Vector3f(-2.5f, -.82f, 0f)
+    val UI_CONTROLS_START = Vector3f(-1.62f, -.76f, 0f)
+    val UI_CONTROLS_PLAY = Vector3f(-2.5f, -.76f, 0f)
 
     val RPM_GAUGE_PLAY = Vector3f(-1.45f, -.75f, 0f)
     val RPM_GAUGE_START = Vector3f(-2.2f, -.75f, 0f)
@@ -506,6 +509,18 @@ class Scene(private val window: GameWindow) {
         glActiveTexture(GL_TEXTURE1)
         glBindTexture(GL_TEXTURE_2D, edgeDetectionFramebuffer.textureID) // The edge detection result
         compositeShader.setUniform("edgeTexture", 1)
+        if (drawEdges && edgeDraw != 1f) {
+            edgeDraw = lerp(1f, edgeDraw, dt)
+            if (edgeDraw > 0.95f) {
+                edgeDraw = 1f
+            }
+        } else if (!drawEdges && edgeDraw != 0f) {
+            edgeDraw = lerp(0f, edgeDraw, dt)
+            if (edgeDraw < 0.05f) {
+                edgeDraw = 0f
+            }
+        }
+        compositeShader.setUniform("edgeDraw", edgeDraw)
         fullScreenQuad.render()
 
         // Render UI
@@ -721,6 +736,9 @@ class Scene(private val window: GameWindow) {
         if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && gameState == GS_GAMEOVER) {
             resetScene()
         }
+        if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+            drawEdges = !drawEdges
+        }
     }
 
     fun onMouseMove(xpos: Double, ypos: Double) {
@@ -740,8 +758,10 @@ class Scene(private val window: GameWindow) {
         player.setPosition(Vector3f(0f, 0f, 0f))
         player.setRotation(0f, Math.toRadians(180.0).toFloat(), 0f)
         player.scale(Vector3f(0.8f))
+        lastVelocity = 0f
         velocity = 0f
         targetRotation = 0f
+        carBody.setRotation(0f, 0f, 0f)
         cameraHolder.setRotation(CAMERA_HOLDER_START_ROT.x, CAMERA_HOLDER_START_ROT.y, CAMERA_HOLDER_START_ROT.z)
         cameraHolder.setPosition(CAMERA_HOLDER_START_POS)
         camera.setRotation(CAMERA_START_ROT.x, CAMERA_START_ROT.y, CAMERA_START_ROT.z)
